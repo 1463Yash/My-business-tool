@@ -1,33 +1,50 @@
- import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-
+import axios from "axios";
 export default function VendorsBilling() {
   const [vendors, setVendors] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: "", hsn: "", gst: "", quantity: "", price: "" });
+  const [newItem, setNewItem] = useState({
+    name: "",
+    hsn: "",
+    gst: "",
+    quantity: "",
+    price: "",
+  });
   const printRef = useRef();
+useEffect(() => {
+  const fetchVendors = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/vendors");
+      setVendors(res.data);
+    } catch (err) {
+      console.error("Error fetching vendors:", err);
+    }
+  };
+  fetchVendors();
+}, []);
 
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("vendors")) || [];
-    setVendors(stored);
-  }, []);
 
   const handleAddItem = () => {
     if (!newItem.name || !newItem.quantity || !newItem.price) return;
-    setBillItems([...billItems, {
-      ...newItem,
-      quantity: parseFloat(newItem.quantity),
-      price: parseFloat(newItem.price),
-      gst: parseFloat(newItem.gst || 0),
-    }]);
+    setBillItems([
+      ...billItems,
+      {
+        ...newItem,
+        quantity: parseFloat(newItem.quantity),
+        price: parseFloat(newItem.price),
+        gst: parseFloat(newItem.gst || 0),
+      },
+    ]);
     setNewItem({ name: "", hsn: "", gst: "", quantity: "", price: "" });
   };
 
   const handleCreateBill = () => {
-    if (!selectedId || billItems.length === 0) return alert("Select a vendor and add items.");
+    if (!selectedId || billItems.length === 0)
+      return alert("Select a vendor and add items.");
 
     const total = billItems.reduce((sum, item) => {
       const itemTotal = item.quantity * item.price;
@@ -46,11 +63,12 @@ export default function VendorsBilling() {
     alert("Bill saved and vendor's total updated.");
     setBillItems([]);
   };
-///////////PRINT  FUNCTION FOR PRINT BILL NEED TO CHANGE THE BILL FORMAT//--------------------------------------------->
-  const handlePrint = () => {                                                                                        //|
-    window.print();                                                                                                  //|
-  };                                                                                                                 //|
-///////////////////////////////////////////////////////////////////////////--------------------------------------------->
+  ///////////PRINT  FUNCTION FOR PRINT BILL NEED TO CHANGE THE BILL FORMAT//--------------------------------------------->
+  const handlePrint = () => {
+    //|
+    window.print(); //|
+  }; //|
+  ///////////////////////////////////////////////////////////////////////////--------------------------------------------->
   const handlePDF = () => {
     const doc = new jsPDF();
     doc.text("Vendor Bill", 10, 10);
@@ -80,36 +98,25 @@ export default function VendorsBilling() {
     <div>
       <h2>Vendor Billing</h2>
 
-      <input
-        type="text"
-        placeholder="Search Vendor by Name..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="input-field"
-        style={{ width: "250px", marginBottom: "10px" }}
-      />
-
-      {filteredVendors.length > 0 ? (
-        <ul>
-          {filteredVendors.map((v) => (
-            <li
-              key={v.id}
-              style={{
-                padding: "8px",
-                background: selectedId === String(v.id) ? "#cce5ff" : "#f0f4f8",
-                marginBottom: "6px",
-                borderRadius: "6px",
-                cursor: "pointer"
-              }}
-              onClick={() => setSelectedId(String(v.id))}
-            >
+      <div style={{ marginBottom: "10px" }}>
+        <label htmlFor="vendorSelect" style={{ marginRight: "10px" }}>
+          Select Vendor:
+        </label>
+        <select
+          id="vendorSelect"
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+          className="input-field"
+          style={{ width: "250px" }}
+        >
+          <option value="">-- Choose Vendor --</option>
+          {vendors.map((v) => (
+            <option key={v.id} value={v.id}>
               {v.name}
-            </li>
+            </option>
           ))}
-        </ul>
-      ) : (
-        <p>No vendors found. Please add one first.</p>
-      )}
+        </select>
+      </div>
 
       <div style={{ marginTop: "20px" }}>
         <h3>Bill Items</h3>
@@ -148,7 +155,9 @@ export default function VendorsBilling() {
           onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
           className="input-field"
         />
-        <button onClick={handleAddItem} className="add-btn">Add Item</button>
+        <button onClick={handleAddItem} className="add-btn">
+          Add Item
+        </button>
       </div>
 
       <div ref={printRef}>
@@ -183,9 +192,23 @@ export default function VendorsBilling() {
       </div>
 
       <div style={{ marginTop: "20px" }}>
-        <button onClick={handleCreateBill} className="add-btn">Submit Bill</button>
-        <button onClick={handlePrint} className="add-btn" style={{ marginLeft: "10px" }}>Print</button>
-        <button onClick={handlePDF} className="add-btn" style={{ marginLeft: "10px" }}>Download PDF</button>
+        <button onClick={handleCreateBill} className="add-btn">
+          Submit Bill
+        </button>
+        <button
+          onClick={handlePrint}
+          className="add-btn"
+          style={{ marginLeft: "10px" }}
+        >
+          Print
+        </button>
+        <button
+          onClick={handlePDF}
+          className="add-btn"
+          style={{ marginLeft: "10px" }}
+        >
+          Download PDF
+        </button>
       </div>
     </div>
   );

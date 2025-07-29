@@ -20,6 +20,17 @@ body {
   border-right: 1px solid #eaeaea;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.04);
 }
+.nav-item {
+  display: block;
+  padding: 10px;
+  text-decoration: none;
+  color: black;
+}
+
+.nav-item.active {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
 
 .sidebar h2 {
   font-size: 22px;

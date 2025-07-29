@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import axios from "axios";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
@@ -7,27 +8,39 @@ export default function RetailerBilling() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
-  const [newItem, setNewItem] = useState({ name: "", hsn: "", gst: "", quantity: "", price: "" });
+  const [newItem, setNewItem] = useState({
+    name: "",
+    hsn: "",
+    gst: "",
+    quantity: "",
+    price: "",
+  });
   const billRef = useRef();
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("retailers")) || [];
-    setRetailers(stored);
+    axios
+      .get("http://localhost:3000/retailers")
+      .then((res) => setRetailers(res.data))
+      .catch((err) => console.error("Error fetching retailers:", err));
   }, []);
 
   const handleAddItem = () => {
     if (!newItem.name || !newItem.quantity || !newItem.price) return;
-    setBillItems([...billItems, {
-      ...newItem,
-      quantity: parseFloat(newItem.quantity),
-      price: parseFloat(newItem.price),
-      gst: parseFloat(newItem.gst || 0),
-    }]);
+    setBillItems([
+      ...billItems,
+      {
+        ...newItem,
+        quantity: parseFloat(newItem.quantity),
+        price: parseFloat(newItem.price),
+        gst: parseFloat(newItem.gst || 0),
+      },
+    ]);
     setNewItem({ name: "", hsn: "", gst: "", quantity: "", price: "" });
   };
 
-  const handleCreateBill = () => {
-    if (!selectedId || billItems.length === 0) return alert("Select a retailer and add items.");
+  const handleCreateBill = async () => {
+    if (!selectedId || billItems.length === 0)
+      return alert("Select a retailer and add items.");
 
     const total = billItems.reduce((sum, item) => {
       const itemTotal = item.quantity * item.price;
@@ -35,21 +48,27 @@ export default function RetailerBilling() {
       return sum + itemTotal + gstAmount;
     }, 0);
 
-    const updated = retailers.map((r) => {
-      if (r.id === parseInt(selectedId)) {
-        return { ...r, totalPurchase: (r.totalPurchase || 0) + total };
-      }
-      return r;
-    });
+    const selectedRetailer = retailers.find(
+      (r) => r.id === parseInt(selectedId)
+    );
+    const updatedTotal = (selectedRetailer.totalPurchase || 0) + total;
 
-    localStorage.setItem("retailers", JSON.stringify(updated));
-    alert("Bill saved and retailer's total updated.");
-    setBillItems([]);
+    try {
+      await axios.put(`http://localhost:3000/api/retailers/${selectedId}`, {
+        ...selectedRetailer,
+        totalPurchase: updatedTotal,
+      });
+      alert("Bill saved and retailer's total updated.");
+      setBillItems([]);
+      // Refresh list
+      const res = await axios.get("http://localhost:3000/api/retailers");
+      setRetailers(res.data);
+    } catch (err) {
+      console.error("Error updating retailer:", err);
+    }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   const handleDownloadPDF = async () => {
     const element = billRef.current;
@@ -71,36 +90,21 @@ export default function RetailerBilling() {
     <div>
       <h2>Retailer Billing</h2>
 
-      <input
-        type="text"
-        placeholder="Search Retailer by Name..."
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-        className="input-field"
-        style={{ width: "250px", marginBottom: "10px" }}
-      />
-
-      {filteredRetailers.length > 0 ? (
-        <ul>
+      <div style={{ marginBottom: "10px" }}>
+        <label>Select Retailer: </label>
+        <select
+          value={selectedId}
+          onChange={(e) => setSelectedId(e.target.value)}
+          className="input-field"
+        >
+          <option value="">-- Select Retailer --</option>
           {filteredRetailers.map((r) => (
-            <li
-              key={r.id}
-              style={{
-                padding: "8px",
-                background: selectedId === String(r.id) ? "#cce5ff" : "#f0f4f8",
-                marginBottom: "6px",
-                borderRadius: "6px",
-                cursor: "pointer"
-              }}
-              onClick={() => setSelectedId(String(r.id))}
-            >
+            <option key={r.id} value={r.id}>
               {r.name}
-            </li>
+            </option>
           ))}
-        </ul>
-      ) : (
-        <p>No retailers found. Please add one first.</p>
-      )}
+        </select>
+      </div>
 
       <div style={{ marginTop: "20px" }}>
         <h3>Bill Items</h3>
@@ -139,7 +143,9 @@ export default function RetailerBilling() {
           onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
           className="input-field"
         />
-        <button onClick={handleAddItem} className="add-btn">Add Item</button>
+        <button onClick={handleAddItem} className="add-btn">
+          Add Item
+        </button>
       </div>
 
       <div ref={billRef} style={{ marginTop: "20px" }}>
@@ -174,9 +180,23 @@ export default function RetailerBilling() {
       </div>
 
       <div style={{ marginTop: "20px" }}>
-        <button onClick={handleCreateBill} className="add-btn">Submit bill</button>
-        <button onClick={handlePrint} className="add-btn" style={{ marginLeft: "10px" }}>Print</button>
-        <button onClick={handleDownloadPDF} className="add-btn" style={{ marginLeft: "10px" }}>Download PDF</button>
+        <button onClick={handleCreateBill} className="add-btn">
+          Submit bill
+        </button>
+        <button
+          onClick={handlePrint}
+          className="add-btn"
+          style={{ marginLeft: "10px" }}
+        >
+          Print
+        </button>
+        <button
+          onClick={handleDownloadPDF}
+          className="add-btn"
+          style={{ marginLeft: "10px" }}
+        >
+          Download PDF
+        </button>
       </div>
     </div>
   );

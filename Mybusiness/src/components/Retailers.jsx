@@ -1,5 +1,8 @@
  import React, { useState, useEffect } from "react";
+import axios from "axios";
 import * as XLSX from "xlsx";
+
+const BASE_URL = "http://localhost:3000";
 
 export default function Retailers() {
   const [retailers, setRetailers] = useState([]);
@@ -8,85 +11,75 @@ export default function Retailers() {
     name: "",
     address: "",
     contactNumber: "",
-    bankName: "",
-    accountNumber: "",
-    ifscCode: "",
-    gstNumber: ""
   });
   const [editingId, setEditingId] = useState(null);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("retailers")) || [];
-    setRetailers(stored);
+    fetchRetailers();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("retailers", JSON.stringify(retailers));
-  }, [retailers]);
+  const fetchRetailers = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/retailers`);
+      setRetailers(res.data);
+    } catch (err) {
+      console.error("Error fetching retailers:", err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value.toUpperCase() }));
   };
 
-  const handleAddRetailer = () => {
+  const handleAddOrUpdate = async () => {
     if (form.name.trim() === "") return;
-
-    const exists = retailers.some(
-      (r) =>
-        r.name.toLowerCase() === form.name.trim().toLowerCase() &&
-        r.id !== editingId
+     const duplicate = retailers.some(
+      (v) =>
+        v.name.toLowerCase() === form.name.trim().toLowerCase() &&
+        v.id !== editingId
     );
-    if (exists) {
-      alert("Retailer with this name already exists.");
+    if (duplicate) {
+      alert("retailer with this name already exists.");
       return;
     }
 
-    if (editingId !== null) {
-      const updated = retailers.map((r) =>
-        r.id === editingId
-          ? { ...form, id: editingId, totalPurchase: r.totalPurchase || 0 }
-          : r
-      );
-      setRetailers(updated);
+    try {
+      if (editingId) {
+        await axios.put(`${BASE_URL}/retailers/${editingId}`, form);
+      } else {
+        await axios.post(`${BASE_URL}/retailers`, form);
+      }
+
+      await fetchRetailers();
+      setForm({ name: "", address: "", contactNumber: "" });
       setEditingId(null);
-    } else {
-      const newRetailer = {
-        ...form,
-        id: Date.now(),
-        totalPurchase: 0
-      };
-      setRetailers([...retailers, newRetailer]);
-    }
-
-    setForm({
-      name: "",
-      address: "",
-      contactNumber: "",
-      bankName: "",
-      accountNumber: "",
-      ifscCode: "",
-      gstNumber: ""
-    });
-  };
-
-  const handleDelete = (id) => {
-    const confirm = prompt("Are you sure? Type 'yes' to delete this retailer.");
-    if (confirm && confirm.toLowerCase() === "yes") {
-      setRetailers(retailers.filter((r) => r.id !== id));
+    } catch (err) {
+      console.error("Error saving retailer:", err);
+      alert("Failed to save retailer");
     }
   };
 
-  const handleEdit = (id) => {
-    const toEdit = retailers.find((r) => r.id === id);
-    if (toEdit) {
-      setForm(toEdit);
-      setEditingId(id);
+  const handleDelete = async (id) => {
+    const confirm = prompt("Type 'yes' to delete this retailer.");
+    if (confirm?.toLowerCase() === "yes") {
+      try {
+        await axios.delete(`${BASE_URL}/retailers/${id}`);
+        await fetchRetailers();
+      } catch (err) {
+        console.error("Error deleting retailer:", err);
+        alert("Failed to delete");
+      }
     }
+  };
+
+  const handleEdit = (retailer) => {
+    setForm(retailer);
+    setEditingId(retailer.id);
   };
 
   const handleExport = () => {
-    const exportData = retailers.map(({ id, totalPurchase, ...rest }) => rest);
+    const exportData = retailers.map(({ id, ...rest }) => rest);
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Retailers");
@@ -94,44 +87,44 @@ export default function Retailers() {
   };
 
   const filteredRetailers = retailers.filter((r) => {
-    const query = searchQuery.toLowerCase();
+    const q = searchQuery.toLowerCase();
     return (
-      r.name.toLowerCase().includes(query) ||
-      r.address.toLowerCase().includes(query) ||
-      (r.contactNumber && r.contactNumber.includes(query))
+      r.name.toLowerCase().includes(q) ||
+      (r.address && r.address.toLowerCase().includes(q)) ||
+      (r.contactNumber && r.contactNumber.includes(q))
     );
   });
 
   return (
     <div className="main-content">
       <h2>Retailers</h2>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+
+      {/* Search + Export */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
         <input
           type="text"
           placeholder="Search retailers..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="input-field"
-          style={{ flex: 1, maxWidth: "250px" }}
+          style={{ flex: 1, maxWidth: 250 }}
         />
         <button onClick={handleExport} className="add-btn" style={{ marginLeft: "auto" }}>
-          Update to Excel
+          Export to Excel
         </button>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+      {/* Form */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
         <input name="name" placeholder="Retailer Name *" value={form.name} onChange={handleChange} className="input-field" />
         <input name="address" placeholder="Address" value={form.address} onChange={handleChange} className="input-field" />
         <input name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} className="input-field" />
-        <input name="gstNumber" placeholder="GST Number" value={form.gstNumber} onChange={handleChange} className="input-field" />
-        <input name="bankName" placeholder="Bank Name" value={form.bankName} onChange={handleChange} className="input-field" />
-        <input name="accountNumber" placeholder="Account Number" value={form.accountNumber} onChange={handleChange} className="input-field" />
-        <input name="ifscCode" placeholder="IFSC Code" value={form.ifscCode} onChange={handleChange} className="input-field" />
-        <button onClick={handleAddRetailer} className="add-btn">
+        <button onClick={handleAddOrUpdate} className="add-btn">
           {editingId ? "Update Retailer" : "Add Retailer"}
         </button>
       </div>
 
+      {/* Table */}
       {filteredRetailers.length > 0 ? (
         <table className="vendors-table">
           <thead>
@@ -139,11 +132,6 @@ export default function Retailers() {
               <th>Name</th>
               <th>Address</th>
               <th>Contact</th>
-              <th>GST</th>
-              <th>Bank</th>
-              <th>Account</th>
-              <th>IFSC</th>
-              <th>Total Purchase (₹)</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -153,14 +141,9 @@ export default function Retailers() {
                 <td>{r.name}</td>
                 <td>{r.address || "—"}</td>
                 <td>{r.contactNumber || "—"}</td>
-                <td>{r.gstNumber || "—"}</td>
-                <td>{r.bankName || "—"}</td>
-                <td>{r.accountNumber || "—"}</td>
-                <td>{r.ifscCode || "—"}</td>
-                <td>₹ {(r.totalPurchase || 0).toFixed(2)}</td>
                 <td>
-                  <button className="delete-icon-btn" onClick={() => handleEdit(r.id)}>Edit</button>
-                  <button className="delete-icon-btn" onClick={() => handleDelete(r.id)} style={{ marginLeft: "6px" }}>Delete</button>
+                  <button className="delete-icon-btn" onClick={() => handleEdit(r)}>Edit</button>
+                  <button className="delete-icon-btn" onClick={() => handleDelete(r.id)} style={{ marginLeft: 6 }}>Delete</button>
                 </td>
               </tr>
             ))}

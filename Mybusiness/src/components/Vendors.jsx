@@ -1,4 +1,5 @@
  import React, { useState, useEffect } from "react";
+import axios from "axios";
 import * as XLSX from "xlsx";
 
 export default function Vendors() {
@@ -11,77 +12,80 @@ export default function Vendors() {
     accountNumber: "",
     ifscCode: ""
   });
-  /////////
+  ///////////////////////////////////////////////////////
   const [editingId, setEditingId] = useState(null);
 
+  // Fetch vendors from backend
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem("vendors")) || [];
-    setVendors(stored);
+    fetchVendors();
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem("vendors", JSON.stringify(vendors));
-  }, [vendors]);
+  const fetchVendors = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/api/vendors");
+      setVendors(res.data);
+    } catch (err) {
+      console.error("Error fetching vendors:", err);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value.toUpperCase() }));
   };
 
-  const handleAddVendor = () => {
+  const handleAddOrUpdate = async () => {
     if (form.name.trim() === "") return;
 
-    const exists = vendors.some(
+    const duplicate = vendors.some(
       (v) =>
         v.name.toLowerCase() === form.name.trim().toLowerCase() &&
         v.id !== editingId
     );
-    if (exists) {
+    if (duplicate) {
       alert("Vendor with this name already exists.");
       return;
     }
 
-    if (editingId !== null) {
-      const updated = vendors.map((v) =>
-        v.id === editingId ? { ...form, id: editingId, totalPurchase: v.totalPurchase || 0 } : v
-      );
-      setVendors(updated);
+    try {
+      if (editingId !== null) {
+        await axios.put(`http://localhost:3000/api/vendors/${editingId}`, form);
+      } else {
+        await axios.post("http://localhost:3000/api/vendors", form);
+      }
+      setForm({
+        name: "",
+        gstNumber: "",
+        bankName: "",
+        accountNumber: "",
+        ifscCode: ""
+      });
       setEditingId(null);
-    } else {
-      const newVendor = {
-        ...form,
-        id: Date.now(),
-        totalPurchase: 0
-      };
-      setVendors([...vendors, newVendor]);
+      fetchVendors();
+    } catch (err) {
+      console.error("Error saving vendor:", err);
     }
-
-    setForm({
-      name: "",
-      gstNumber: "",
-      bankName: "",
-      accountNumber: "",
-      ifscCode: ""
-    });
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const confirm = prompt("Are you sure? Type 'yes' to delete this vendor.");
-    if (confirm && confirm.toLowerCase() === "yes") {
-      setVendors(vendors.filter((v) => v.id !== id));
+    if (confirm?.toLowerCase() === "yes") {
+      try {
+        await axios.delete(`http://localhost:3000/api/vendors/${id}`);
+        fetchVendors();
+      } catch (err) {
+        console.error("Error deleting vendor:", err);
+      }
     }
   };
 
-  const handleEdit = (id) => {
-    const toEdit = vendors.find((v) => v.id === id);
-    if (toEdit) {
-      setForm(toEdit);
-      setEditingId(id);
-    }
+  const handleEdit = (vendor) => {
+    setForm(vendor);
+    setEditingId(vendor.id);
   };
 
   const handleExport = () => {
-    const exportData = vendors.map(({ id, totalPurchase, ...rest }) => rest);
+    const exportData = vendors.map(({ totalPurchase, ...rest }) => rest);
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Vendors");
@@ -92,36 +96,33 @@ export default function Vendors() {
     const query = searchQuery.toLowerCase();
     return (
       v.name.toLowerCase().includes(query) ||
-      v.gstNumber.toLowerCase().includes(query)
+      v.gstNumber?.toLowerCase().includes(query)
     );
   });
 
   return (
     <div className="main-content">
       <h2>Vendors</h2>
-      <p>Add, update, and export vendors with GST and bank details.</p>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
         <input
           type="text"
           placeholder="Search vendors..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="input-field"
-          style={{ flex: 1, maxWidth: "250px" }}
+          style={{ maxWidth: "250px" }}
         />
-        <button onClick={handleExport} className="add-btn" style={{ marginLeft: "auto" }}>
-          Update to Excel
-        </button>
+        <button onClick={handleExport} className="add-btn">Export to Excel</button>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "20px" }}>
         <input name="name" placeholder="Vendor Name *" value={form.name} onChange={handleChange} className="input-field" />
         <input name="gstNumber" placeholder="GST Number" value={form.gstNumber} onChange={handleChange} className="input-field" />
         <input name="bankName" placeholder="Bank Name" value={form.bankName} onChange={handleChange} className="input-field" />
         <input name="accountNumber" placeholder="Account Number" value={form.accountNumber} onChange={handleChange} className="input-field" />
         <input name="ifscCode" placeholder="IFSC Code" value={form.ifscCode} onChange={handleChange} className="input-field" />
-        <button onClick={handleAddVendor} className="add-btn">
+        <button onClick={handleAddOrUpdate} className="add-btn">
           {editingId ? "Update Vendor" : "Add Vendor"}
         </button>
       </div>
@@ -131,11 +132,10 @@ export default function Vendors() {
           <thead>
             <tr>
               <th>Name</th>
-              <th>GST</th>
+              <th>GST Number</th>
               <th>Bank</th>
-              <th>Account</th>
+              <th>Account No.</th>
               <th>IFSC</th>
-              <th>Total Purchase (₹)</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -147,9 +147,8 @@ export default function Vendors() {
                 <td>{v.bankName || "—"}</td>
                 <td>{v.accountNumber || "—"}</td>
                 <td>{v.ifscCode || "—"}</td>
-                <td>₹ {(v.totalPurchase || 0).toFixed(2)}</td>
                 <td>
-                  <button className="delete-icon-btn" onClick={() => handleEdit(v.id)}>Edit</button>
+                  <button className="delete-icon-btn" onClick={() => handleEdit(v)}>Edit</button>
                   <button className="delete-icon-btn" onClick={() => handleDelete(v.id)} style={{ marginLeft: "6px" }}>Delete</button>
                 </td>
               </tr>
