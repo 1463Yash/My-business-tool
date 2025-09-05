@@ -107,6 +107,42 @@ body {
   color: #888;
 }
 
+
+
+
+.discount-container {
+  display: inline-flex; /* Keep input and button on same line */
+  align-items: center;
+  width: auto; /* Or fixed width if you want */
+}
+
+.discount-input {
+  border-radius: 8px 0 0 8px; /* Round left corners */
+  border: 1px solid #ccc;
+  padding: 8px;
+  font-size: 14px;
+  margin-top: 10px;
+  margin-right: 0px;
+}
+
+.discount-toggle {
+  background: #d1cbcb;
+  border: 1px solid #ccc;
+  border-left: none; /* Merge with input */
+  border-radius: 0 8px 8px 0; /* Round right corners */
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-right: 5px;
+ 
+  
+}
+
+.discount-toggle:hover {
+  background: #e0e0e0;
+}
+
 /* BUTTONS */
 .add-btn {
   padding: 10px 16px;
@@ -139,6 +175,8 @@ body {
   background-color: rgb(0, 100, 220);
 }
 
+
+ 
 /* TABLE STYLING (USED IN VENDORS/RETAILERS) */
 .vendors-table {
   width: 100%;

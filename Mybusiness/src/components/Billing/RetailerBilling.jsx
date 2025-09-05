@@ -5,6 +5,8 @@ import html2canvas from "html2canvas";
 
 export default function RetailerBilling() {
   const [retailers, setRetailers] = useState([]);
+  const [productcode, setProductcode] = useState([]);
+  const [selectedProductCode, setSelectedProductCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
@@ -68,6 +70,37 @@ export default function RetailerBilling() {
     }
   };
 
+
+  // Fetch product codes
+  useEffect(() => {
+    const fetchProductCode = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/addproductcode");
+        setProductcode(res.data);
+      } catch (err) {
+        console.error("Error in fetching product code", err);
+      }
+    };
+    fetchProductCode();
+  }, []);
+
+  //  Auto-fill of description and HSN code
+  const handleProductSelect = (e) => {
+    const selectedCode = e.target.value;
+    setSelectedProductCode(selectedCode);
+
+    const selectedProduct = productcode.find(
+      (p) => p.code === selectedCode // Match by product code
+    );
+
+    if (selectedProduct) {
+      setNewItem((prev) => ({
+        ...prev,
+        name: selectedProduct.description || "", // Auto-fill description
+        hsn: selectedProduct.HSN || "", // Auto-fill HSN code
+      }));
+    }
+  };
   const handlePrint = () => window.print();
 
   const handleDownloadPDF = async () => {
@@ -108,10 +141,32 @@ export default function RetailerBilling() {
 
       <div style={{ marginTop: "20px" }}>
         <h3>Bill Items</h3>
+        {/* Select Product Code */}
+        <div style={{ marginBottom: "10px" }}>
+          <label htmlFor="productSelect" style={{ marginRight: "10px" }}>
+            Select Product Code:
+          </label>
+          <select
+            id="productSelect"
+            value={selectedProductCode}
+            onChange={handleProductSelect}
+            className="input-field"
+            style={{ width: "250px" }}
+          >
+            <option value="">-- Choose Product --</option>
+            {productcode.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.code}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <input
           type="text"
-          placeholder="Item Name"
+          placeholder="Product description"
           value={newItem.name}
+          readOnly
           onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
           className="input-field"
         />
@@ -119,6 +174,7 @@ export default function RetailerBilling() {
           type="text"
           placeholder="HSN Code"
           value={newItem.hsn}
+          readOnly
           onChange={(e) => setNewItem({ ...newItem, hsn: e.target.value })}
           className="input-field"
         />
@@ -138,7 +194,7 @@ export default function RetailerBilling() {
         />
         <input
           type="number"
-          placeholder="Price"
+          placeholder="UnitPrice"
           value={newItem.price}
           onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
           className="input-field"

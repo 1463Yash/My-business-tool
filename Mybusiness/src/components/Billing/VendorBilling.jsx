@@ -4,29 +4,82 @@ import "jspdf-autotable";
 import axios from "axios";
 export default function VendorsBilling() {
   const [vendors, setVendors] = useState([]);
+  const [productcode, setProductcode] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
+  const [selectedProductCode, setSelectedProductCode] = useState("");
   const [newItem, setNewItem] = useState({
+    productcode: "",
     name: "",
     hsn: "",
     gst: "",
     quantity: "",
     price: "",
+    discount: "",
+    discountType: "value",
   });
   const printRef = useRef();
-useEffect(() => {
-  const fetchVendors = async () => {
-    try {
-      const res = await axios.get("http://localhost:3000/api/vendors");
-      setVendors(res.data);
-    } catch (err) {
-      console.error("Error fetching vendors:", err);
+  useEffect(() => {
+    const fetchVendors = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/vendors");
+        setVendors(res.data);
+      } catch (err) {
+        console.error("Error fetching vendors:", err);
+      }
+    };
+    fetchVendors();
+  }, []);
+
+  // Fetch product codes
+  useEffect(() => {
+    const fetchProductCode = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/api/addproductcode");
+        setProductcode(res.data);
+      } catch (err) {
+        console.error("Error in fetching product code", err);
+      }
+    };
+    fetchProductCode();
+  }, []);
+
+  //  Auto-fill of description and HSN code
+  const handleProductSelect = (e) => {
+    const selectedCode = e.target.value;
+    setSelectedProductCode(selectedCode);
+
+    const selectedProduct = productcode.find(
+      (p) => p.code === selectedCode // Match by product code
+    );
+
+    if (selectedProduct) {
+      setNewItem((prev) => ({
+        ...prev,
+        productcode: selectedProduct.code || "",
+        name: selectedProduct.description || "", // Auto-fill description
+        hsn: selectedProduct.HSN || "", // Auto-fill HSN code
+      }));
     }
   };
-  fetchVendors();
-}, []);
+  const total = billItems.reduce((sum, item) => {
+    let itemTotal = item.quantity * item.price;
 
+    // Apply discount
+    if (item.discountType === "percent") {
+      itemTotal -= (itemTotal * item.discount) / 100;
+    } else {
+      itemTotal -= item.discount;
+    }
+
+    const gstAmount = itemTotal * (item.gst / 100);
+    return sum + itemTotal + gstAmount;
+  }, 0);
+
+  const handleDeleteItem = (index) => {
+    setBillItems((prevItems) => prevItems.filter((_, i) => i !== index));
+  };
 
   const handleAddItem = () => {
     if (!newItem.name || !newItem.quantity || !newItem.price) return;
@@ -37,9 +90,19 @@ useEffect(() => {
         quantity: parseFloat(newItem.quantity),
         price: parseFloat(newItem.price),
         gst: parseFloat(newItem.gst || 0),
+        discount: parseFloat(newItem.discount || 0),
+        discountType: newItem.discountType,
       },
     ]);
-    setNewItem({ name: "", hsn: "", gst: "", quantity: "", price: "" });
+    setNewItem({
+      name: "",
+      hsn: "",
+      gst: "",
+      quantity: "",
+      price: "",
+      discount: "",
+      discountType: "percent",
+    });
   };
 
   const handleCreateBill = () => {
@@ -120,10 +183,33 @@ useEffect(() => {
 
       <div style={{ marginTop: "20px" }}>
         <h3>Bill Items</h3>
+        {/*Working on the is starting here */}
+        {/* Select Product Code */}
+        <div style={{ marginBottom: "10px" }}>
+          <label htmlFor="productSelect" style={{ marginRight: "10px" }}>
+            Select Product Code:
+          </label>
+          <select
+            id="productSelect"
+            value={selectedProductCode}
+            onChange={handleProductSelect}
+            className="input-field"
+            style={{ width: "250px" }}
+          >
+            <option value="">-- Choose Product --</option>
+            {productcode.map((p) => (
+              <option key={p.code} value={p.code}>
+                {p.code}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <input
           type="text"
-          placeholder="Item Name"
+          placeholder="Product description"
           value={newItem.name}
+          readOnly
           onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
           className="input-field"
         />
@@ -131,9 +217,36 @@ useEffect(() => {
           type="text"
           placeholder="HSN Code"
           value={newItem.hsn}
+          readOnly
           onChange={(e) => setNewItem({ ...newItem, hsn: e.target.value })}
           className="input-field"
         />
+
+        <div className="discount-container">
+          <input
+            type="number"
+            placeholder="Discount"
+            className="input-field discount-input"
+            value={newItem.discount}
+            onChange={(e) =>
+              setNewItem({ ...newItem, discount: e.target.value })
+            }
+          />
+          <button
+            type="button"
+            className="discount-toggle"
+            onClick={() =>
+              setNewItem({
+                ...newItem,
+                discountType:
+                  newItem.discountType === "percent" ? "value" : "percent",
+              })
+            }
+          >
+            {newItem.discountType === "percent" ? "%" : "₹"}
+          </button>
+        </div>
+
         <input
           type="number"
           placeholder="GST %"
@@ -150,7 +263,7 @@ useEffect(() => {
         />
         <input
           type="number"
-          placeholder="Price"
+          placeholder="Unit Price"
           value={newItem.price}
           onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
           className="input-field"
@@ -164,26 +277,45 @@ useEffect(() => {
         <table className="vendors-table" style={{ marginTop: "20px" }}>
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Product code</th>
+              <th>Description</th>
               <th>HSN</th>
+              <th>Discount</th>
               <th>GST %</th>
               <th>Qty</th>
               <th>Price</th>
               <th>Total</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {billItems.map((item, index) => {
-              const total = item.quantity * item.price;
-              const gstAmount = total * (item.gst / 100);
+              const itemTotal = item.quantity * item.price;
+              const discountedTotal =
+                item.discountType === "percent"
+                  ? itemTotal - (itemTotal * item.discount) / 100
+                  : itemTotal - item.discount;
+
+              const gstAmount = discountedTotal * (item.gst / 100);
+              const finalTotal = discountedTotal + gstAmount;
+
               return (
                 <tr key={index}>
+                  <td>{item.productcode}</td>
                   <td>{item.name}</td>
                   <td>{item.hsn}</td>
+                  <td>
+                    {item.discount}{" "}
+                    {item.discountType === "percent" ? "%" : "₹"}
+                  </td>
                   <td>{item.gst}%</td>
                   <td>{item.quantity}</td>
                   <td>₹{item.price.toFixed(2)}</td>
-                  <td>₹{(total + gstAmount).toFixed(2)}</td>
+                  <td>₹{finalTotal.toFixed(2)}</td>
+
+                  <td>
+                    <button onClick={() => handleDeleteItem(index)}>❌</button>
+                  </td>
                 </tr>
               );
             })}

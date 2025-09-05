@@ -175,7 +175,7 @@ app.put("/api/addproductcode/:code", (req, res) => {
   const { code } = req.params;
   const { HSN, description, vendorsname } = req.body;
 
-  const sql ="UPDATE productcode SET HSN = ?, description = ?, vendorsname = ? WHERE code = ?";
+  const sql = "UPDATE productcode SET HSN=?, description=?, vendorsname=? WHERE TRIM(LOWER(code)) = TRIM(LOWER(?))";
   db.query(sql, [HSN, description, vendorsname, code], (err, result) => {
     if (err) {
       console.error("Error updating product code:", err);
@@ -191,12 +191,17 @@ app.put("/api/addproductcode/:code", (req, res) => {
 // DELETE product code
 app.delete("/api/addproductcode/:code", (req, res) => {
   const { code } = req.params;
-  db.query("DELETE FROM productcode WHERE code=?", [code], (err) => {
+
+  const sql = "DELETE FROM productcode WHERE TRIM(LOWER(code)) = TRIM(LOWER(?))";
+  db.query(sql, [code], (err, result) => {
     if (err) {
       console.error("Error deleting product code:", err);
       return res.status(500).json({ message: "Failed to delete product code" });
     }
-    res.json({ message: "Product code deleted" });
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Product code not found" });
+    }
+    res.json({ message: "Product code deleted successfully" });
     console.log(`✅ Product code deleted successfully! (Code: ${code})`);
   });
 });

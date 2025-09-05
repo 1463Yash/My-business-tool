@@ -118,7 +118,7 @@ export default function Retailers() {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
         <input name="name" placeholder="Retailer Name *" value={form.name} onChange={handleChange} className="input-field" />
         <input name="address" placeholder="Address" value={form.address} onChange={handleChange} className="input-field" />
-        <input name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} className="input-field" />
+        <input type="number" name="contactNumber" placeholder="Contact Number" value={form.contactNumber} onChange={handleChange} className="input-field" />
         <button onClick={handleAddOrUpdate} className="add-btn">
           {editingId ? "Update Retailer" : "Add Retailer"}
         </button>
