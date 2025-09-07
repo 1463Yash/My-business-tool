@@ -11,65 +11,28 @@ export default function RetailerBilling() {
   const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
   const [newItem, setNewItem] = useState({
+    productcode: "",
     name: "",
     hsn: "",
     gst: "",
     quantity: "",
     price: "",
+    discount: "",
+    discountType: "value",
   });
   const billRef = useRef();
 
   useEffect(() => {
-    axios
-      .get("http://localhost:3000/retailers")
-      .then((res) => setRetailers(res.data))
-      .catch((err) => console.error("Error fetching retailers:", err));
+    const fetchretailers = async () => {
+      try {
+        const res = await axios.get("http://localhost:3000/retailers");
+        setRetailers(res.data);
+      } catch (err) {
+        console.err("Error fetching retailers:", err);
+      }
+    };
+    fetchretailers();
   }, []);
-
-  const handleAddItem = () => {
-    if (!newItem.name || !newItem.quantity || !newItem.price) return;
-    setBillItems([
-      ...billItems,
-      {
-        ...newItem,
-        quantity: parseFloat(newItem.quantity),
-        price: parseFloat(newItem.price),
-        gst: parseFloat(newItem.gst || 0),
-      },
-    ]);
-    setNewItem({ name: "", hsn: "", gst: "", quantity: "", price: "" });
-  };
-
-  const handleCreateBill = async () => {
-    if (!selectedId || billItems.length === 0)
-      return alert("Select a retailer and add items.");
-
-    const total = billItems.reduce((sum, item) => {
-      const itemTotal = item.quantity * item.price;
-      const gstAmount = itemTotal * (item.gst / 100);
-      return sum + itemTotal + gstAmount;
-    }, 0);
-
-    const selectedRetailer = retailers.find(
-      (r) => r.id === parseInt(selectedId)
-    );
-    const updatedTotal = (selectedRetailer.totalPurchase || 0) + total;
-
-    try {
-      await axios.put(`http://localhost:3000/api/retailers/${selectedId}`, {
-        ...selectedRetailer,
-        totalPurchase: updatedTotal,
-      });
-      alert("Bill saved and retailer's total updated.");
-      setBillItems([]);
-      // Refresh list
-      const res = await axios.get("http://localhost:3000/api/retailers");
-      setRetailers(res.data);
-    } catch (err) {
-      console.error("Error updating retailer:", err);
-    }
-  };
-
 
   // Fetch product codes
   useEffect(() => {
@@ -96,11 +59,98 @@ export default function RetailerBilling() {
     if (selectedProduct) {
       setNewItem((prev) => ({
         ...prev,
+        productcode: selectedCode,
         name: selectedProduct.description || "", // Auto-fill description
         hsn: selectedProduct.HSN || "", // Auto-fill HSN code
       }));
     }
   };
+  ////////////////discount in Bills/////from here to----------
+  const total = billItems.reduce((sum, item) => {
+    let itemTotal = item.quantity * item.price;
+
+    // Apply discount
+    if (item.discountType === "percent") {
+      itemTotal -= (itemTotal * item.discount) / 100;
+    } else {
+      itemTotal -= item.discount;
+    }
+
+    const gstAmount = itemTotal * (item.gst / 100);
+    return sum + itemTotal + gstAmount;
+  }, 0);
+
+  const handleDeleteItem = (index) => {
+    setBillItems((prevItems) => prevItems.filter((_, i) => i !== index));
+  };
+  ///////-------------here------------------------------///////
+  const handleAddItem = () => {
+    if (!newItem.name || !newItem.quantity || !newItem.price) return;
+    setBillItems([
+      ...billItems,
+      {
+        ...newItem,
+        quantity: parseFloat(newItem.quantity),
+        price: parseFloat(newItem.price),
+        gst: parseFloat(newItem.gst || 0),
+        discount: parseFloat(newItem.discount || 0),
+        discountType: newItem.discountType,
+      },
+    ]);
+    setNewItem({
+      name: "",
+      hsn: "",
+      gst: "",
+      quantity: "",
+      price: "",
+      discount: "",
+      discountType: "percent",
+    });
+  };
+
+  const handleCreateBill = async () => {
+  if (!selectedId || billItems.length === 0)
+    return alert("Select a retailer and add items.");
+
+  const totalAmount = billItems.reduce((sum, item) => {
+    const itemTotal = item.quantity * item.price;
+    const gstAmount = itemTotal * (item.gst / 100);
+    return sum + itemTotal + gstAmount;
+  }, 0);
+
+  const selectedRetailer = retailers.find(
+    (r) => r.id === parseInt(selectedId)
+  );
+  const updatedTotal = (selectedRetailer.totalPurchase || 0) + totalAmount;
+
+  try {
+    // 1️⃣ Create bill in /bills table
+    const date = new Date().toISOString().split("T")[0]; // today's date
+    await axios.post("http://localhost:3000/bills", {
+      retailerId: selectedId,
+      amount: totalAmount,
+      date,
+    });
+
+    // 2️⃣ Update retailer totalPurchase
+    await axios.put(`http://localhost:3000/retailers/${selectedId}`, {
+      ...selectedRetailer,
+      totalPurchase: updatedTotal,
+    });
+
+    alert("Bill saved and retailer's total updated.");
+    setBillItems([]);
+    
+    // 3️⃣ Refresh retailers list
+    const res = await axios.get("http://localhost:3000/retailers");
+    setRetailers(res.data);
+  } catch (err) {
+    console.error("Error creating bill:", err);
+    alert("Failed to create bill. Check console for details.");
+  }
+};
+
+
   const handlePrint = () => window.print();
 
   const handleDownloadPDF = async () => {
@@ -178,6 +228,31 @@ export default function RetailerBilling() {
           onChange={(e) => setNewItem({ ...newItem, hsn: e.target.value })}
           className="input-field"
         />
+
+        <div className="discount-container">
+          <input
+            type="number"
+            placeholder="Discount"
+            className="input-field discount-input"
+            value={newItem.discount}
+            onChange={(e) =>
+              setNewItem({ ...newItem, discount: e.target.value })
+            }
+          />
+          <button
+            type="button"
+            className="discount-toggle"
+            onClick={() =>
+              setNewItem({
+                ...newItem,
+                discountType:
+                  newItem.discountType === "percent" ? "value" : "percent",
+              })
+            }
+          >
+            {newItem.discountType === "percent" ? "%" : "₹"}
+          </button>
+        </div>
         <input
           type="number"
           placeholder="GST %"
@@ -194,7 +269,7 @@ export default function RetailerBilling() {
         />
         <input
           type="number"
-          placeholder="UnitPrice"
+          placeholder="Unit Price"
           value={newItem.price}
           onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
           className="input-field"
@@ -208,26 +283,44 @@ export default function RetailerBilling() {
         <table className="vendors-table">
           <thead>
             <tr>
-              <th>Name</th>
+              <th>Product code</th>
+              <th>Description</th>
               <th>HSN</th>
+              <th>Discount</th>
               <th>GST %</th>
               <th>Qty</th>
               <th>Price</th>
               <th>Total</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
             {billItems.map((item, index) => {
-              const total = item.quantity * item.price;
-              const gstAmount = total * (item.gst / 100);
+              const itemTotal = item.quantity * item.price;
+              const discountedTotal =
+                item.discountType === "percent"
+                  ? itemTotal - (itemTotal * item.discount) / 100
+                  : itemTotal - item.discount;
+
+              const gstAmount = discountedTotal * (item.gst / 100);
+              const finalTotal = discountedTotal + gstAmount;
               return (
                 <tr key={index}>
+                  <td>{item.productcode}</td>
                   <td>{item.name}</td>
                   <td>{item.hsn}</td>
+                  <td>
+                    {item.discount}{" "}
+                    {item.discountType === "percent" ? "%" : "₹"}
+                  </td>
                   <td>{item.gst}%</td>
                   <td>{item.quantity}</td>
                   <td>₹{item.price.toFixed(2)}</td>
-                  <td>₹{(total + gstAmount).toFixed(2)}</td>
+                  <td>₹{finalTotal.toFixed(2)}</td>
+
+                  <td>
+                    <button onClick={() => handleDeleteItem(index)}>❌</button>
+                  </td>
                 </tr>
               );
             })}

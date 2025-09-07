@@ -37,22 +37,11 @@ export default function Add_product_code() {
   const handleAddOrUpdate = async () => {
   if (form.code.trim() === "") return;
 
-  const duplicate = productcode.some(
-    (v) =>
-      v.code.toLowerCase() === form.code.trim().toLowerCase() &&
-      v.code !== editingCode
-  );
-  if (duplicate) {
-    alert("Product code already exists.");
-    return;
-  }
-
   try {
     if (editingCode !== null) {
       await axios.put(
         `http://localhost:3000/api/addproductcode/${editingCode}`,
         {
-          code: form.code, // ✅ include this line
           HSN: form.HSN,
           description: form.description,
           vendorsname: form.vendorsname,
@@ -66,10 +55,24 @@ export default function Add_product_code() {
     setEditingCode(null);
     fetchProducts();
   } catch (err) {
-    console.error("Error saving product code:", err);
-    alert("Something went wrong while saving.");
+  if (err.response) {
+    if (err.response.status === 409) {
+      alert("❌ Duplicate code! This product code already exists.");
+    } else if (err.response.status === 400) {
+      alert("⚠ All fields are required.");
+    } else {
+      alert("Something went wrong while saving. Try again.");
+    }
+    console.log("Handled error:", err.response.data.message);
+  } else {
+    alert("Network error. Check your server.");
+    console.log("Handled error:", err.message);
   }
+}
+
 };
+
+
 
   const handleDelete = async (code) => {
     const confirmDelete = prompt(

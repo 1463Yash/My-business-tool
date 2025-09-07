@@ -229,3 +229,73 @@ body {
     margin-top: 8px;
   }
 }
+
+
+/* Reset Filter Button */
+.reset-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
+}
+
+.reset-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Table Container for Horizontal Scroll */
+.table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+/* Align Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Clear/Deduct Button */
+.clear-btn {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.3s ease;
+}
+
+.clear-btn:hover {
+  background-color: #1e7e34;
+}
+
+/* Bill Dropdown */
+.bill-dropdown {
+  padding: 6px;
+  border-radius: 4px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #fff;
+  margin-left: 6px;
+}
+
+.bill-dropdown option {
+  padding: 8px;
+}
+
+/* Fix Table Overflow on Small Screens */
+@media screen and (max-width: 768px) {
+  .vendors-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
