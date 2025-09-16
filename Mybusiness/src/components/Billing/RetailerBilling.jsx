@@ -6,9 +6,11 @@ import html2canvas from "html2canvas";
 export default function RetailerBilling() {
   const [retailers, setRetailers] = useState([]);
   const [productcode, setProductcode] = useState([]);
+
   const [selectedProductCode, setSelectedProductCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("");
+  const [
+    selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
   const [newItem, setNewItem] = useState({
     productcode: "",
@@ -18,7 +20,7 @@ export default function RetailerBilling() {
     quantity: "",
     price: "",
     discount: "",
-    discountType: "value",
+    discountType: "percent",
   });
   const billRef = useRef();
 
@@ -28,7 +30,7 @@ export default function RetailerBilling() {
         const res = await axios.get("http://localhost:3000/retailers");
         setRetailers(res.data);
       } catch (err) {
-        console.err("Error fetching retailers:", err);
+        console.log("Error fetching retailers data for billing", err);
       }
     };
     fetchretailers();
@@ -65,20 +67,37 @@ export default function RetailerBilling() {
       }));
     }
   };
-  ////////////////discount in Bills/////from here to----------
-  const total = billItems.reduce((sum, item) => {
-    let itemTotal = item.quantity * item.price;
+  
 
-    // Apply discount
-    if (item.discountType === "percent") {
-      itemTotal -= (itemTotal * item.discount) / 100;
-    } else {
-      itemTotal -= item.discount;
+  //calculate discount and GST 
+  const calculateItemTotal = (item) => {
+    let quantity = Number(item.quantity) || 0;
+    let price = Number(item.price) || 0;
+    let discount = Number(item.discount) || 0;
+    let gst = Number(item.gst) || 0;
+    let discountType = (item.discountType || "").toLowerCase();
+
+    let itemTotal = quantity * price;
+
+    if (discount > 0) {
+      if (discountType === "percent") {
+        itemTotal -= (itemTotal * discount) / 100;
+      } else if (discountType === "flat") {
+        itemTotal -= discount;
+      }
     }
 
-    const gstAmount = itemTotal * (item.gst / 100);
-    return sum + itemTotal + gstAmount;
-  }, 0);
+    itemTotal = Math.max(0, itemTotal); // prevent negative
+
+    const gstAmount = itemTotal * (gst / 100);
+    return itemTotal + gstAmount;
+  };
+
+  const total = billItems.reduce(
+    (sum, item) => sum + calculateItemTotal(item),
+    0
+  );
+  console.log("Final Total:", total);
 
   const handleDeleteItem = (index) => {
     setBillItems((prevItems) => prevItems.filter((_, i) => i !== index));
@@ -109,47 +128,30 @@ export default function RetailerBilling() {
   };
 
   const handleCreateBill = async () => {
-  if (!selectedId || billItems.length === 0)
-    return alert("Select a retailer and add items.");
+    if (!selectedId || billItems.length === 0)
+      return alert("Select a retailer and add items.");
 
-  const totalAmount = billItems.reduce((sum, item) => {
-    const itemTotal = item.quantity * item.price;
-    const gstAmount = itemTotal * (item.gst / 100);
-    return sum + itemTotal + gstAmount;
-  }, 0);
+    const totalAmount = billItems.reduce(
+      (sum, item) => sum + calculateItemTotal(item),
+      0
+    );
+    try {
+      // 1️⃣ Create bill in /retailersbills table
 
-  const selectedRetailer = retailers.find(
-    (r) => r.id === parseInt(selectedId)
-  );
-  const updatedTotal = (selectedRetailer.totalPurchase || 0) + totalAmount;
+      await axios.post("http://localhost:3000/bills", {
+        
+        
+      });
 
-  try {
-    // 1️⃣ Create bill in /bills table
-    const date = new Date().toISOString().split("T")[0]; // today's date
-    await axios.post("http://localhost:3000/bills", {
-      retailerId: selectedId,
-      amount: totalAmount,
-      date,
-    });
-
-    // 2️⃣ Update retailer totalPurchase
-    await axios.put(`http://localhost:3000/retailers/${selectedId}`, {
-      ...selectedRetailer,
-      totalPurchase: updatedTotal,
-    });
-
-    alert("Bill saved and retailer's total updated.");
-    setBillItems([]);
-    
-    // 3️⃣ Refresh retailers list
-    const res = await axios.get("http://localhost:3000/retailers");
-    setRetailers(res.data);
-  } catch (err) {
-    console.error("Error creating bill:", err);
-    alert("Failed to create bill. Check console for details.");
-  }
-};
-
+      
+      // 3️⃣ Refresh retailers list
+      const res = await axios.get("http://localhost:3000/retailers");
+      setRetailers(res.data);
+    } catch (err) {
+      console.error("Error creating bill:", err);
+      alert("Failed to create bill. Check console for details.");
+    }
+  };
 
   const handlePrint = () => window.print();
 
@@ -246,7 +248,7 @@ export default function RetailerBilling() {
               setNewItem({
                 ...newItem,
                 discountType:
-                  newItem.discountType === "percent" ? "value" : "percent",
+                  newItem.discountType === "percent" ? "flat" : "percent",
               })
             }
           >
@@ -296,14 +298,8 @@ export default function RetailerBilling() {
           </thead>
           <tbody>
             {billItems.map((item, index) => {
-              const itemTotal = item.quantity * item.price;
-              const discountedTotal =
-                item.discountType === "percent"
-                  ? itemTotal - (itemTotal * item.discount) / 100
-                  : itemTotal - item.discount;
+              const finalTotal = calculateItemTotal(item);
 
-              const gstAmount = discountedTotal * (item.gst / 100);
-              const finalTotal = discountedTotal + gstAmount;
               return (
                 <tr key={index}>
                   <td>{item.productcode}</td>

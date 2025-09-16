@@ -7,38 +7,24 @@ const BASE_URL = "http://localhost:3000";
 export default function Retailers() {
   const [retailers, setRetailers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({
     name: "",
     address: "",
     contactNumber: "",
   });
-  const [editingId, setEditingId] = useState(null);
-
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-
   useEffect(() => {
     fetchRetailers();
   }, []);
 
   // ----------------- FETCH RETAILERS WITH BILLS -----------------
-  const fetchRetailers = async () => {
-    try {
-      const res = await axios.get(`${BASE_URL}/retailers`);
-      const retailersWithBills = await Promise.all(
-        res.data.map(async (r) => {
-          const billsRes = await axios.get(
-            `${BASE_URL}/bills?retailerId=${r.id}`
-          );
-          const allBills = billsRes.data || [];
-          const unpaidBills = allBills.filter((b) => b.status !== "Paid");
-          const totalDues = unpaidBills.reduce((sum, b) => sum + b.amount, 0);
-          return { ...r, totalDue: totalDues, allBills, unpaidBills };
-        })
-      );
-      setRetailers(retailersWithBills);
-    } catch (err) {
-      console.error("Error fetching retailers:", err);
+  const fetchRetailers=async()=>{
+    try{
+      const res=await axios.get("http://localhost:3000/retailers");
+      setRetailers(res.data);
+    }
+    catch(err){
+      console.log("Error in fetching retailers data",err);
     }
   };
 
@@ -100,54 +86,7 @@ export default function Retailers() {
     XLSX.utils.book_append_sheet(wb, ws, "Retailers");
     XLSX.writeFile(wb, "retailers.xlsx");
   };
-
-  // ----------------- CLEAR / DEDUCT BILLS -----------------
-  const handleClearBill = async (retailer) => {
-    const unpaidBills = retailer.unpaidBills;
-    const totalDue = retailer.totalDue;
-    if (totalDue <= 0) return alert("No dues to clear.");
-
-    let amount = parseFloat(
-      prompt(`Enter amount to clear (Total: ₹${totalDue})`)
-    );
-    if (isNaN(amount) || amount <= 0) return alert("Invalid amount");
-
-    const confirmAmount = parseFloat(prompt("Retype the amount to confirm:"));
-    if (amount !== confirmAmount) return alert("Amount mismatch");
-    if (amount > totalDue) return alert("Cannot clear more than total due");
-
-    try {
-      let remaining = amount;
-      for (let bill of unpaidBills) {
-        if (remaining <= 0) break;
-        const clearAmount = Math.min(bill.amount, remaining);
-        await axios.put(`${BASE_URL}/bills/clear/${bill.id}`, {
-          clearedAmount: clearAmount,
-        });
-        remaining -= clearAmount;
-      }
-      alert(`₹${amount} cleared for ${retailer.name}`);
-      fetchRetailers();
-    } catch (err) {
-      console.error("Error clearing bill:", err);
-      alert("Failed to clear bill");
-    }
-  };
-
-  // ----------------- FORMAT DATE -----------------
-  const formatDate = (dateString) => {
-    const d = new Date(dateString);
-    return `${d.getDate().toString().padStart(2, "0")}-${(d.getMonth() + 1)
-      .toString()
-      .padStart(2, "0")}-${d.getFullYear()}`;
-  };
-
-  // ----------------- RESET FILTER -----------------
-  const resetFilter = () => {
-    setStartDate("");
-    setEndDate("");
-  };
-
+ 
   // ----------------- FILTER RETAILERS -----------------
   const filteredRetailers = retailers.filter((r) => {
     const q = searchQuery.toLowerCase();
@@ -176,30 +115,6 @@ export default function Retailers() {
         </button>
       </div>
 
-      {/* Date Filter */}
-      <div className="date-filter-container">
-        <label>
-          Start Date:
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </label>
-        <label>
-          End Date:
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </label>
-        <button className="reset-btn" onClick={resetFilter}>
-          Reset Filter
-        </button>
-      </div>
-
-      {/* Form */}
       <div className="form-container">
         <input
           name="name"
@@ -237,45 +152,18 @@ export default function Retailers() {
                 <th>Name</th>
                 <th>Address</th>
                 <th>Contact</th>
-                <th>Total Due</th>
-                <th>Bills</th>
+                <th>Amount Due</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredRetailers.map((r) => {
-                const filteredBills = (r.allBills || [])
-                  .filter((bill) => {
-                    const billDate = new Date(bill.date);
-                    const start = startDate ? new Date(startDate) : null;
-                    const end = endDate ? new Date(endDate) : null;
-                    return (
-                      (!start || billDate >= start) && (!end || billDate <= end)
-                    );
-                  })
-                  .sort((a, b) => new Date(b.date) - new Date(a.date));
-
                 return (
                   <tr key={r.id}>
                     <td>{r.name}</td>
                     <td>{r.address || "—"}</td>
                     <td>{r.contactNumber || "—"}</td>
                     <td>₹{r.totalDue || 0}</td>
-                    <td>
-                      {filteredBills.length > 0 && (
-                        <select className="bill-dropdown">
-                          <option value="" disabled>
-                            Select Bill
-                          </option>
-                          {filteredBills.map((bill) => (
-                            <option key={bill.id} value={bill.id}>
-                              {formatDate(bill.date)} - ₹{bill.amount} -{" "}
-                              {bill.status}
-                            </option>
-                          ))}
-                        </select>
-                      )}
-                    </td>
                     <td className="action-buttons">
                       <button
                         className="delete-icon-btn"
@@ -289,21 +177,6 @@ export default function Retailers() {
                       >
                         Delete
                       </button>
-                      {filteredBills.some((bill) => bill.status !== "Paid") && (
-                        <button
-                          className="clear-btn"
-                          onClick={() =>
-                            handleClearBill({
-                              ...r,
-                              unpaidBills: filteredBills.filter(
-                                (b) => b.status !== "Paid"
-                              ),
-                            })
-                          }
-                        >
-                          Clear / Deduct
-                        </button>
-                      )}
                     </td>
                   </tr>
                 );

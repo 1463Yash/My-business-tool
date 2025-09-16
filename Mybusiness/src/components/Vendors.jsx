@@ -136,6 +136,7 @@ export default function Vendors() {
               <th>Bank</th>
               <th>Account No.</th>
               <th>IFSC</th>
+              <th>Amount due</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -147,6 +148,7 @@ export default function Vendors() {
                 <td>{v.bankName || "—"}</td>
                 <td>{v.accountNumber || "—"}</td>
                 <td>{v.ifscCode || "—"}</td>
+                <td>₹{v.totaldue || 0}</td>
                 <td>
                   <button className="delete-icon-btn" onClick={() => handleEdit(v)}>Edit</button>
                   <button className="delete-icon-btn" onClick={() => handleDelete(v.id)} style={{ marginLeft: "6px" }}>Delete</button>

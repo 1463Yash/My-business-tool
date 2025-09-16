@@ -17,7 +17,7 @@ export default function VendorsBilling() {
     quantity: "",
     price: "",
     discount: "",
-    discountType: "value",
+    discountType: "percent",
   });
   const printRef = useRef();
   useEffect(() => {
