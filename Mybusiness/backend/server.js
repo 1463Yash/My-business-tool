@@ -4,8 +4,8 @@ const cors = require("cors");
 const vendorsRoutes = require("./routes/vendors");
 const retailersRoutes = require("./routes/retailers");
 const productCodesRoutes = require("./routes/productCodes");
-
-
+const retailerbillRoutes=require("./routes/retailer-bill");
+const vendorsbillRoutes=require("./routes/vendors-billing");
 
 const app = express();
 app.use(cors());
@@ -17,8 +17,8 @@ app.get("/", (req, res) => res.send("✅ Server is working!"));
 app.use("/api/vendors", vendorsRoutes);
 app.use("/retailers", retailersRoutes);
 app.use("/api/addproductcode", productCodesRoutes);
-
-
+app.use("/retailer-billing",retailerbillRoutes);
+app.use("/vendor-billing",vendorsbillRoutes);
 // Server start
 app.listen(3000, () => {
   console.log("🚀 Server is running on http://localhost:3000");

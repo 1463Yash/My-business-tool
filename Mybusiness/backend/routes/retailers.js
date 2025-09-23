@@ -4,7 +4,7 @@ const db = require("../db");
 
 // GET all retailers with dues
 router.get("/", (req, res) => {
-  const sql="select *from retailers";
+  const sql="SELECT r.id,r.name,r.contactNumber,r.address,IFNULL(SUM(rb.final_amount), 0) AS total_dues FROM retailers r LEFT JOIN retailersbook rb  ON r.id = rb.retailersid GROUP BY r.id";
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ message: "Server error" });
     res.json(results);

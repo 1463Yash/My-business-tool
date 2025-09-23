@@ -12,6 +12,7 @@ export default function Retailers() {
     name: "",
     address: "",
     contactNumber: "",
+    total_dues:""
   });
   useEffect(() => {
     fetchRetailers();
@@ -25,6 +26,7 @@ export default function Retailers() {
     }
     catch(err){
       console.log("Error in fetching retailers data",err);
+  
     }
   };
 
@@ -163,7 +165,7 @@ export default function Retailers() {
                     <td>{r.name}</td>
                     <td>{r.address || "—"}</td>
                     <td>{r.contactNumber || "—"}</td>
-                    <td>₹{r.totalDue || 0}</td>
+                    <td>₹{Number(r.total_dues).toFixed(2) ||0}</td>
                     <td className="action-buttons">
                       <button
                         className="delete-icon-btn"

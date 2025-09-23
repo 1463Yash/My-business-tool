@@ -2,12 +2,14 @@ import React, { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import axios from "axios";
+import { calculateItemTotal } from "./calculate";
 export default function VendorsBilling() {
   const [vendors, setVendors] = useState([]);
   const [productcode, setProductcode] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
+  
   const [selectedProductCode, setSelectedProductCode] = useState("");
   const [newItem, setNewItem] = useState({
     productcode: "",
@@ -63,25 +65,13 @@ export default function VendorsBilling() {
       }));
     }
   };
-  const total = billItems.reduce((sum, item) => {
-    let itemTotal = item.quantity * item.price;
-
-    // Apply discount
-    if (item.discountType === "percent") {
-      itemTotal -= (itemTotal * item.discount) / 100;
-    } else {
-      itemTotal -= item.discount;
-    }
-
-    const gstAmount = itemTotal * (item.gst / 100);
-    return sum + itemTotal + gstAmount;
-  }, 0);
-
+  
   const handleDeleteItem = (index) => {
     setBillItems((prevItems) => prevItems.filter((_, i) => i !== index));
   };
 
   const handleAddItem = () => {
+    const finalTotal=calculateItemTotal(newItem);
     if (!newItem.name || !newItem.quantity || !newItem.price) return;
     setBillItems([
       ...billItems,
@@ -92,9 +82,11 @@ export default function VendorsBilling() {
         gst: parseFloat(newItem.gst || 0),
         discount: parseFloat(newItem.discount || 0),
         discountType: newItem.discountType,
+        finalTotal
       },
     ]);
     setNewItem({
+      productcode:"",
       name: "",
       hsn: "",
       gst: "",
@@ -104,28 +96,50 @@ export default function VendorsBilling() {
       discountType: "percent",
     });
   };
-
-  const handleCreateBill = () => {
+/////////////////////////////////////////////////////////////////////
+  const handleCreateBill = async() => {
     if (!selectedId || billItems.length === 0)
       return alert("Select a vendor and add items.");
 
-    const total = billItems.reduce((sum, item) => {
-      const itemTotal = item.quantity * item.price;
-      const gstAmount = itemTotal * (item.gst / 100);
-      return sum + itemTotal + gstAmount;
-    }, 0);
+    const totalAmount=billItems.reduce(
+      (sum,item)=>sum+calculateItemTotal(item),
+      0
+    );
 
-    const updated = vendors.map((v) => {
-      if (v.id === parseInt(selectedId)) {
-        return { ...v, totalPurchase: (v.totalPurchase || 0) + total };
-      }
-      return v;
-    });
 
-    localStorage.setItem("vendors", JSON.stringify(updated));
-    alert("Bill saved and vendor's total updated.");
-    setBillItems([]);
-  };
+    try{
+       await axios.post("http://localhost:3000/vendor-billing",{
+       vendorsid:selectedId,
+       finalamount:totalAmount,
+       items:billItems});
+       
+
+       alert("Bill submitted successfully!");
+       setBillItems([]);
+       setNewItem({
+        productcode:"",
+        name:"",
+        hsn:"",
+        gst:"",
+        quantity:"",
+        price:"",
+        discount:"",
+        discountType:"percent",
+       })
+       const res=await axios.get("http://localhost:3000/api/vendors");
+       setVendors(res.data);
+    }catch(err){
+      console.log("Error creating bill:",err);
+      alert("Failed to create bill.Check console for details.");
+    }
+
+  };//////////////////////////////////////////on working/////////////
+
+
+
+
+
+
   ///////////PRINT  FUNCTION FOR PRINT BILL NEED TO CHANGE THE BILL FORMAT//--------------------------------------------->
   const handlePrint = () => {
     //|
@@ -173,7 +187,7 @@ export default function VendorsBilling() {
           style={{ width: "250px" }}
         >
           <option value="">-- Choose Vendor --</option>
-          {vendors.map((v) => (
+          {filteredVendors.map((v) => (
             <option key={v.id} value={v.id}>
               {v.name}
             </option>
@@ -229,7 +243,9 @@ export default function VendorsBilling() {
             className="input-field discount-input"
             value={newItem.discount}
             onChange={(e) =>
-              setNewItem({ ...newItem, discount: e.target.value })
+              setNewItem({ ...newItem, 
+                discount:Math.max(0,parseFloat(e.target.value ||0))
+               })
             }
           />
           <button
@@ -251,21 +267,25 @@ export default function VendorsBilling() {
           type="number"
           placeholder="GST %"
           value={newItem.gst}
-          onChange={(e) => setNewItem({ ...newItem, gst: e.target.value })}
+          onChange={(e) => setNewItem({ ...newItem, 
+          gst:Math.max(0,parseFloat(e.target.value || 0)) })}
           className="input-field"
         />
         <input
           type="number"
           placeholder="Quantity"
           value={newItem.quantity}
-          onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+          onChange={(e) => setNewItem({ ...newItem, 
+          quantity:Math.max(0,parseFloat(e.target.value || 0))
+           })}
           className="input-field"
         />
         <input
           type="number"
           placeholder="Unit Price"
           value={newItem.price}
-          onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+          onChange={(e) => setNewItem({ ...newItem, 
+          price:Math.max(0,parseFloat(e.target.value || 0)) })}
           className="input-field"
         />
         <button onClick={handleAddItem} className="add-btn">
@@ -290,14 +310,7 @@ export default function VendorsBilling() {
           </thead>
           <tbody>
             {billItems.map((item, index) => {
-              const itemTotal = item.quantity * item.price;
-              const discountedTotal =
-                item.discountType === "percent"
-                  ? itemTotal - (itemTotal * item.discount) / 100
-                  : itemTotal - item.discount;
-
-              const gstAmount = discountedTotal * (item.gst / 100);
-              const finalTotal = discountedTotal + gstAmount;
+              const finalTotal= calculateItemTotal(item);
 
               return (
                 <tr key={index}>

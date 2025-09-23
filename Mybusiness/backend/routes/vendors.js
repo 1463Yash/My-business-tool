@@ -4,7 +4,7 @@ const db = require("../db");
 
 // GET all vendors
 router.get("/", (req, res) => {
-  db.query("SELECT * FROM vendors", (err, results) => {
+  db.query("SELECT v.id,v.name,v.gstNumber,v.bankName,v.accountNumber,v.ifscCode,IFNULL(SUM(vb.final_amount), 0) AS total_dues FROM vendors v LEFT JOIN vendorsbook vb  ON v.id = vb.vendorsid GROUP BY v.id", (err, results) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(results);
     console.log("Vendors loaded successfully!");

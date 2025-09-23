@@ -10,7 +10,8 @@ export default function Vendors() {
     gstNumber: "",
     bankName: "",
     accountNumber: "",
-    ifscCode: ""
+    ifscCode: "",
+    
   });
   ///////////////////////////////////////////////////////
   const [editingId, setEditingId] = useState(null);
@@ -26,6 +27,7 @@ export default function Vendors() {
       setVendors(res.data);
     } catch (err) {
       console.error("Error fetching vendors:", err);
+      
     }
   };
 
@@ -148,7 +150,7 @@ export default function Vendors() {
                 <td>{v.bankName || "—"}</td>
                 <td>{v.accountNumber || "—"}</td>
                 <td>{v.ifscCode || "—"}</td>
-                <td>₹{v.totaldue || 0}</td>
+                <td>₹{Number(v.total_dues).toFixed(2) || 0}</td>
                 <td>
                   <button className="delete-icon-btn" onClick={() => handleEdit(v)}>Edit</button>
                   <button className="delete-icon-btn" onClick={() => handleDelete(v.id)} style={{ marginLeft: "6px" }}>Delete</button>

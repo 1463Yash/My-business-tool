@@ -2,15 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-
+import { calculateItemTotal } from "./calculate";
 export default function RetailerBilling() {
   const [retailers, setRetailers] = useState([]);
   const [productcode, setProductcode] = useState([]);
-
   const [selectedProductCode, setSelectedProductCode] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [
-    selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState("");
   const [billItems, setBillItems] = useState([]);
   const [newItem, setNewItem] = useState({
     productcode: "",
@@ -69,41 +67,14 @@ export default function RetailerBilling() {
   };
   
 
-  //calculate discount and GST 
-  const calculateItemTotal = (item) => {
-    let quantity = Number(item.quantity) || 0;
-    let price = Number(item.price) || 0;
-    let discount = Number(item.discount) || 0;
-    let gst = Number(item.gst) || 0;
-    let discountType = (item.discountType || "").toLowerCase();
-
-    let itemTotal = quantity * price;
-
-    if (discount > 0) {
-      if (discountType === "percent") {
-        itemTotal -= (itemTotal * discount) / 100;
-      } else if (discountType === "flat") {
-        itemTotal -= discount;
-      }
-    }
-
-    itemTotal = Math.max(0, itemTotal); // prevent negative
-
-    const gstAmount = itemTotal * (gst / 100);
-    return itemTotal + gstAmount;
-  };
-
-  const total = billItems.reduce(
-    (sum, item) => sum + calculateItemTotal(item),
-    0
-  );
-  console.log("Final Total:", total);
+ 
 
   const handleDeleteItem = (index) => {
     setBillItems((prevItems) => prevItems.filter((_, i) => i !== index));
   };
   ///////-------------here------------------------------///////
   const handleAddItem = () => {
+     const finalTotal = calculateItemTotal(newItem);
     if (!newItem.name || !newItem.quantity || !newItem.price) return;
     setBillItems([
       ...billItems,
@@ -114,6 +85,7 @@ export default function RetailerBilling() {
         gst: parseFloat(newItem.gst || 0),
         discount: parseFloat(newItem.discount || 0),
         discountType: newItem.discountType,
+        finalTotal
       },
     ]);
     setNewItem({
@@ -138,11 +110,27 @@ export default function RetailerBilling() {
     try {
       // 1️⃣ Create bill in /retailersbills table
 
-      await axios.post("http://localhost:3000/bills", {
-        
-        
+      await axios.post("http://localhost:3000/retailer-billing", {
+        retailerid:selectedId,
+        final_amount:totalAmount,
+        items:billItems
       });
 
+
+      alert("Bill submitted successfully!");
+      setBillItems([]);
+      setSelectedId("");
+      setNewItem({
+        productcode:"",
+        name:"",
+        hsn:"",
+        gst:"",
+        quantity:"",
+        price:"",
+        discount:"",
+        discountType:"percent",
+     
+      })
       
       // 3️⃣ Refresh retailers list
       const res = await axios.get("http://localhost:3000/retailers");
@@ -238,7 +226,8 @@ export default function RetailerBilling() {
             className="input-field discount-input"
             value={newItem.discount}
             onChange={(e) =>
-              setNewItem({ ...newItem, discount: e.target.value })
+              setNewItem({ ...newItem,
+               discount: Math.max(0,parseFloat(e.target.value || 0)) })
             }
           />
           <button
@@ -259,21 +248,24 @@ export default function RetailerBilling() {
           type="number"
           placeholder="GST %"
           value={newItem.gst}
-          onChange={(e) => setNewItem({ ...newItem, gst: e.target.value })}
+          onChange={(e) => setNewItem({ ...newItem,
+           gst: Math.max(0,parseFloat(e.target.value || 0)) })}
           className="input-field"
         />
         <input
           type="number"
           placeholder="Quantity"
           value={newItem.quantity}
-          onChange={(e) => setNewItem({ ...newItem, quantity: e.target.value })}
+          onChange={(e) => setNewItem({ ...newItem,
+          quantity: Math.max(0,parseFloat(e.target.value || 0))})}
           className="input-field"
         />
         <input
           type="number"
           placeholder="Unit Price"
           value={newItem.price}
-          onChange={(e) => setNewItem({ ...newItem, price: e.target.value })}
+          onChange={(e) => setNewItem({ ...newItem,
+          price:Math.max(0, parseFloat(e.target.value || 0)) })}
           className="input-field"
         />
         <button onClick={handleAddItem} className="add-btn">
