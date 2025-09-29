@@ -7,6 +7,7 @@ export default function Add_product_code() {
   const [productcode, setCode] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [vendors, setVendors] = useState([]);
+  const[stockCode,setStockecode]=useState([]);
   const [form, setForm] = useState({
     code: "",
     HSN: "",
@@ -71,10 +72,30 @@ export default function Add_product_code() {
 }
 
 };
-
-
+  
+  useEffect(()=>{
+    const fetchStockecode=async()=>{
+      try{
+        const res=await axios.get("http://localhost:3000/retailer-billing");
+        setStockecode(res.data);
+      }
+      catch(err){
+        console.error("Error in fetching deletcode");
+      }
+    };
+    fetchStockecode();
+  },[]);
 
   const handleDelete = async (code) => {
+    const selectedProduct = stockCode.find(
+    (p) => p.productcode === code
+  );
+
+  // Check stock availability before deleting
+  if (selectedProduct && selectedProduct.available_stock > 0) {
+    return alert(`Product is in stock. Cannot delete it!`);
+  }
+
     const confirmDelete = prompt(
       "Are you sure? Type 'yes' to delete this product code."
     );

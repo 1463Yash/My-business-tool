@@ -1,5 +1,10 @@
- import React from "react";
-import { BrowserRouter as Router, Routes, Route, NavLink } from "react-router-dom";
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  NavLink,
+} from "react-router-dom";
 import Home from "./components/Home";
 import Inventory from "./components/Inventory";
 import Vendors from "./components/Vendors";
@@ -13,7 +18,9 @@ export default function App() {
   return (
     <Router>
       <div className="app-container">
-        <aside className="sidebar">
+        <aside
+          className="sidebar"
+        >
           <h2>Business Tool</h2>
           <nav className="nav-menu">
             <NavLink to="/" end className="nav-item">
@@ -48,7 +55,7 @@ export default function App() {
             <Route path="/retailers" element={<Retailers />} />
             <Route path="/vendor-billing" element={<VendorBilling />} />
             <Route path="/retailer-billing" element={<RetailerBilling />} />
-            <Route path="/addproductcode" element={<Add_product_code />}/>
+            <Route path="/addproductcode" element={<Add_product_code />} />
           </Routes>
         </main>
       </div>

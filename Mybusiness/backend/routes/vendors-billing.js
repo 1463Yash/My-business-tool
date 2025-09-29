@@ -37,7 +37,7 @@ router.post("/", async (req, res) => {
     item.finalTotal,
   ]
 );
-
+  console.log("Vendors bill submitted successfully!");
     }
 
     await connection.commit();

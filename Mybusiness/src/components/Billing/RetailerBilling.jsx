@@ -38,7 +38,7 @@ export default function RetailerBilling() {
   useEffect(() => {
     const fetchProductCode = async () => {
       try {
-        const res = await axios.get("http://localhost:3000/api/addproductcode");
+        const res = await axios.get("http://localhost:3000/retailer-billing");
         setProductcode(res.data);
       } catch (err) {
         console.error("Error in fetching product code", err);
@@ -53,28 +53,33 @@ export default function RetailerBilling() {
     setSelectedProductCode(selectedCode);
 
     const selectedProduct = productcode.find(
-      (p) => p.code === selectedCode // Match by product code
+      (p) => p.productcode === selectedCode // Match by product code
     );
-
+    // Warning if quantity is less than available stock
+    if (parseFloat(newItem.quantity) > selectedProduct.available_stock) {
+      return alert(
+        `Warning: Entered quantity is less than available stock (${selectedProduct.available_stock}).`
+      );
+    }
     if (selectedProduct) {
       setNewItem((prev) => ({
         ...prev,
         productcode: selectedCode,
-        name: selectedProduct.description || "", // Auto-fill description
-        hsn: selectedProduct.HSN || "", // Auto-fill HSN code
+        name: selectedProduct.name || "", // Auto-fill description
+        hsn: selectedProduct.hsn || "", // Auto-fill HSN code
+        gst: selectedProduct.gst || 0,
+        price: selectedProduct.last_price || "",
+        quantity: "",
       }));
     }
   };
-  
-
- 
 
   const handleDeleteItem = (index) => {
     setBillItems((prevItems) => prevItems.filter((_, i) => i !== index));
   };
   ///////-------------here------------------------------///////
   const handleAddItem = () => {
-     const finalTotal = calculateItemTotal(newItem);
+    const finalTotal = calculateItemTotal(newItem);
     if (!newItem.name || !newItem.quantity || !newItem.price) return;
     setBillItems([
       ...billItems,
@@ -85,7 +90,7 @@ export default function RetailerBilling() {
         gst: parseFloat(newItem.gst || 0),
         discount: parseFloat(newItem.discount || 0),
         discountType: newItem.discountType,
-        finalTotal
+        finalTotal,
       },
     ]);
     setNewItem({
@@ -111,27 +116,25 @@ export default function RetailerBilling() {
       // 1️⃣ Create bill in /retailersbills table
 
       await axios.post("http://localhost:3000/retailer-billing", {
-        retailerid:selectedId,
-        final_amount:totalAmount,
-        items:billItems
+        retailerid: selectedId,
+        final_amount: totalAmount,
+        items: billItems,
       });
-
 
       alert("Bill submitted successfully!");
       setBillItems([]);
       setSelectedId("");
       setNewItem({
-        productcode:"",
-        name:"",
-        hsn:"",
-        gst:"",
-        quantity:"",
-        price:"",
-        discount:"",
-        discountType:"percent",
-     
-      })
-      
+        productcode: "",
+        name: "",
+        hsn: "",
+        gst: "",
+        quantity: "",
+        price: "",
+        discount: "",
+        discountType: "percent",
+      });
+
       // 3️⃣ Refresh retailers list
       const res = await axios.get("http://localhost:3000/retailers");
       setRetailers(res.data);
@@ -195,8 +198,8 @@ export default function RetailerBilling() {
           >
             <option value="">-- Choose Product --</option>
             {productcode.map((p) => (
-              <option key={p.code} value={p.code}>
-                {p.code}
+              <option key={p.productcode} value={p.productcode}>
+                {p.productcode}
               </option>
             ))}
           </select>
@@ -226,8 +229,10 @@ export default function RetailerBilling() {
             className="input-field discount-input"
             value={newItem.discount}
             onChange={(e) =>
-              setNewItem({ ...newItem,
-               discount: Math.max(0,parseFloat(e.target.value || 0)) })
+              setNewItem({
+                ...newItem,
+                discount: Math.max(0, parseFloat(e.target.value || 0)),
+              })
             }
           />
           <button
@@ -248,24 +253,53 @@ export default function RetailerBilling() {
           type="number"
           placeholder="GST %"
           value={newItem.gst}
-          onChange={(e) => setNewItem({ ...newItem,
-           gst: Math.max(0,parseFloat(e.target.value || 0)) })}
+          onChange={(e) =>
+            setNewItem({
+              ...newItem,
+              gst: Math.max(0, parseFloat(e.target.value || 0)),
+            })
+          }
           className="input-field"
         />
         <input
           type="number"
           placeholder="Quantity"
           value={newItem.quantity}
-          onChange={(e) => setNewItem({ ...newItem,
-          quantity: Math.max(0,parseFloat(e.target.value || 0))})}
+          min={1}
+          max={
+            productcode.find((p) => p.productcode === selectedProductCode)
+              ?.available_stock || 1
+          }
+          onChange={(e) => {
+            const value = parseFloat(e.target.value || 0);
+            const selectedProduct = productcode.find(
+              (p) => p.productcode === selectedProductCode
+            );
+
+            if (selectedProduct) {
+              // Prevent quantity higher than available stock
+              const validValue = Math.min(
+                value,
+                selectedProduct.available_stock
+              );
+              setNewItem({ ...newItem, quantity: validValue });
+            } else {
+              setNewItem({ ...newItem, quantity: value });
+            }
+          }}
           className="input-field"
         />
+
         <input
           type="number"
           placeholder="Unit Price"
           value={newItem.price}
-          onChange={(e) => setNewItem({ ...newItem,
-          price:Math.max(0, parseFloat(e.target.value || 0)) })}
+          onChange={(e) =>
+            setNewItem({
+              ...newItem,
+              price: Math.max(0, parseFloat(e.target.value || 0)),
+            })
+          }
           className="input-field"
         />
         <button onClick={handleAddItem} className="add-btn">
@@ -293,7 +327,7 @@ export default function RetailerBilling() {
               const finalTotal = calculateItemTotal(item);
 
               return (
-                <tr key={index}>
+                <tr key={`${item.productcode}-${index}`}>
                   <td>{item.productcode}</td>
                   <td>{item.name}</td>
                   <td>{item.hsn}</td>

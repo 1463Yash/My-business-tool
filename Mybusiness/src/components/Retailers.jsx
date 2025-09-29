@@ -63,6 +63,12 @@ export default function Retailers() {
 
   // ----------------- DELETE RETAILER -----------------
   const handleDelete = async (id) => {
+    const retailerid=retailers.find(
+      (r) => r.id===id
+    );
+    if(retailerid && retailerid.id>0){
+      return alert(`Cannot close this account, First clear dues`);
+    }
     const confirm = prompt("Type 'yes' to delete this retailer.");
     if (confirm?.toLowerCase() === "yes") {
       try {
@@ -143,6 +149,16 @@ export default function Retailers() {
         <button onClick={handleAddOrUpdate} className="add-btn">
           {editingId ? "Update Retailer" : "Add Retailer"}
         </button>
+        {editingId &&(
+          <button className="add-btn"
+          style={{backgroundColor:"gray",marginLeft:"10px"}}
+          onClick={()=>{
+            setForm({name:"",contactNumber:"",address:"",total_dues:""})
+            setEditingId(null);
+          }}>
+            Cancel
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -165,7 +181,7 @@ export default function Retailers() {
                     <td>{r.name}</td>
                     <td>{r.address || "—"}</td>
                     <td>{r.contactNumber || "—"}</td>
-                    <td>₹{Number(r.total_dues).toFixed(2) ||0}</td>
+                    <td><b>₹{Number(r.total_dues).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}) ||0}</b></td>
                     <td className="action-buttons">
                       <button
                         className="delete-icon-btn"
@@ -177,7 +193,7 @@ export default function Retailers() {
                         className="delete-icon-btn"
                         onClick={() => handleDelete(r.id)}
                       >
-                        Delete
+                        Close AAccount
                       </button>
                     </td>
                   </tr>

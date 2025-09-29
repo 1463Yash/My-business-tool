@@ -2,6 +2,30 @@ const express = require("express");
 const router = express.Router();
 const db = require("../dbpool");
 
+router.get("/", async (req, res) => {
+  const sql = `
+    SELECT 
+    v.productcode,
+    MAX(v.hsn) AS hsn,
+    MAX(v.name) AS name,
+    MAX(v.gst) AS gst,
+    MAX(v.price) AS last_price,
+    COALESCE(SUM(v.quantity), 0) - COALESCE(SUM(r.quantity), 0) AS available_stock
+FROM vendorsbillbook v
+LEFT JOIN retailersbillbook r 
+    ON v.productcode = r.productcode
+GROUP BY v.productcode;`;
+
+  try {
+    const [results] = await db.query(sql);  // ✅ promise client style
+    res.json(results);
+    console.log("Products data loaded successfully!");
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 router.post("/", async (req, res) => {
   const { retailerid, final_amount, items} = req.body;

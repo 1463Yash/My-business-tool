@@ -70,6 +70,16 @@ export default function Vendors() {
   };
 
   const handleDelete = async (id) => {
+
+    const vendorsid=vendors.find(
+      (v)=>v.id===id
+    );
+
+    //check total dues before closing account
+    if(vendorsid && vendorsid.total_dues>0){
+      return alert(`Cannot close this account, First clear all dues!`);
+    }
+
     const confirm = prompt("Are you sure? Type 'yes' to delete this vendor.");
     if (confirm?.toLowerCase() === "yes") {
       try {
@@ -127,6 +137,17 @@ export default function Vendors() {
         <button onClick={handleAddOrUpdate} className="add-btn">
           {editingId ? "Update Vendor" : "Add Vendor"}
         </button>
+        {editingId && (
+          <button
+          className="add-btn"
+          style={{backgroundColor:"grey",marginLeft:"10px"}}
+          onClick={()=>{
+            setForm({name:"",gstNumber:"",bankName:"",accountNumber:"",ifscCode:""})
+            setEditingId(null);
+          }}
+          >
+          Cancel
+        </button>)}
       </div>
 
       {filteredVendors.length > 0 ? (
@@ -150,10 +171,10 @@ export default function Vendors() {
                 <td>{v.bankName || "—"}</td>
                 <td>{v.accountNumber || "—"}</td>
                 <td>{v.ifscCode || "—"}</td>
-                <td>₹{Number(v.total_dues).toFixed(2) || 0}</td>
+                <td><b>₹{Number(v.total_dues).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}) || 0}</b></td>
                 <td>
                   <button className="delete-icon-btn" onClick={() => handleEdit(v)}>Edit</button>
-                  <button className="delete-icon-btn" onClick={() => handleDelete(v.id)} style={{ marginLeft: "6px" }}>Delete</button>
+                  <button className="delete-icon-btn" onClick={() => handleDelete(v.id)} style={{ marginLeft: "6px" }}>Close Account</button>
                 </td>
               </tr>
             ))}

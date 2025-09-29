@@ -113,7 +113,7 @@ export default function VendorsBilling() {
        finalamount:totalAmount,
        items:billItems});
        
-
+        console.log("Vendors bill submitted successfully!");
        alert("Bill submitted successfully!");
        setBillItems([]);
        setNewItem({

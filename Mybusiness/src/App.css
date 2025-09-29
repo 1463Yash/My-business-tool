@@ -10,6 +10,7 @@ body {
 .app-container {
   display: flex;
   min-height: 100vh;
+
 }
 
 /* SIDEBAR (If used) */
@@ -184,7 +185,7 @@ body {
   margin-top: 20px;
   background-color: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow: auto;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
