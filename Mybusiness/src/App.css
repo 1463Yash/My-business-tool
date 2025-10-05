@@ -1,5 +1,6 @@
  /* GLOBAL STYLES */
 body {
+  overflow: hidden;
   margin: 0;
   font-family: 'Inter', sans-serif;
   background-color: #f9fafc;
@@ -180,6 +181,7 @@ body {
  
 /* TABLE STYLING (USED IN VENDORS/RETAILERS) */
 .vendors-table {
+  max-width: 100vw;
   width: 100%;
   border-collapse: collapse;
   margin-top: 20px;
@@ -205,6 +207,11 @@ body {
 
 .vendors-table td {
   color: #444;
+}
+.vendors-table thead{
+  position: sticky;
+  top: 0%;
+  z-index: 2;
 }
 
 /* RESPONSIVE TWEAKS */
@@ -232,25 +239,11 @@ body {
 }
 
 
-/* Reset Filter Button */
-.reset-btn {
-  background-color: #007bff;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s ease;
-}
-
-.reset-btn:hover {
-  background-color: #0056b3;
-}
-
-/* Table Container for Horizontal Scroll */
+ 
 .table-container {
+  max-height: 450px;
   overflow-x: auto;
+  overflow-y: auto;
   width: 100%;
 }
 
@@ -261,36 +254,8 @@ body {
   flex-wrap: wrap;
 }
 
-/* Clear/Deduct Button */
-.clear-btn {
-  background-color: #28a745;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: background 0.3s ease;
-}
 
-.clear-btn:hover {
-  background-color: #1e7e34;
-}
 
-/* Bill Dropdown */
-.bill-dropdown {
-  padding: 6px;
-  border-radius: 4px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  cursor: pointer;
-  background-color: #fff;
-  margin-left: 6px;
-}
-
-.bill-dropdown option {
-  padding: 8px;
-}
 
 /* Fix Table Overflow on Small Screens */
 @media screen and (max-width: 768px) {

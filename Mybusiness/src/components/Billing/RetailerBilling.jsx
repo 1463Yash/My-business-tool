@@ -56,11 +56,12 @@ export default function RetailerBilling() {
       (p) => p.productcode === selectedCode // Match by product code
     );
     // Warning if quantity is less than available stock
-    if (parseFloat(newItem.quantity) > selectedProduct.available_stock) {
+    if (Number(newItem.quantity) >= selectedProduct.available_stock) {
       return alert(
         `Warning: Entered quantity is less than available stock (${selectedProduct.available_stock}).`
       );
     }
+    console.log(selectedProduct.available_stock);
     if (selectedProduct) {
       setNewItem((prev) => ({
         ...prev,

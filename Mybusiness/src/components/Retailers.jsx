@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import * as XLSX from "xlsx";
+import "reactjs-popup/dist/index.css";
 
-const BASE_URL = "http://localhost:3000";
+const  BASE_URL = "http://localhost:3000";
 
 export default function Retailers() {
   const [retailers, setRetailers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState(null);
+  const [duesForm, setDues] = useState({
+      id:"",
+      date: new Date().toISOString().split("T")[0],
+      amount: "",
+      comments: "",
+      paymentMode: "Cash",
+    });
+
   const [form, setForm] = useState({
     name: "",
     address: "",
@@ -49,8 +58,8 @@ export default function Retailers() {
     try {
       if (editingId) {
         await axios.put(`${BASE_URL}/retailers/${editingId}`, form);
-      } else {
-        await axios.post(`${BASE_URL}/retailers`, form);
+      } else {  
+        await axios.post(`http://localhost:3000/retailers`, form);
       }
       setForm({ name: "", address: "", contactNumber: "" });
       setEditingId(null);
@@ -66,7 +75,7 @@ export default function Retailers() {
     const retailerid=retailers.find(
       (r) => r.id===id
     );
-    if(retailerid && retailerid.id>0){
+    if(retailerid && Number(retailerid.total_dues)>0){
       return alert(`Cannot close this account, First clear dues`);
     }
     const confirm = prompt("Type 'yes' to delete this retailer.");
@@ -104,6 +113,22 @@ export default function Retailers() {
       (r.contactNumber && r.contactNumber.includes(q))
     );
   });
+
+// ---------------------Handle Pay dues--------------
+  const handlePaydues=async(id)=>{
+    const retailer=retailers.find(
+      (r)=>r.id===id
+    );
+    setDues.id=id;
+    setDues.amount=prompt(`Enter amount to be pay`);
+    setDues.comments=prompt(`Any comments`);
+    setDues.data=prompt(Date);
+    setDues.paymentMode=prompt(`Paymode`);
+    console.log();
+  };
+
+
+
 
   return (
     <div className="main-content">
@@ -171,6 +196,7 @@ export default function Retailers() {
                 <th>Address</th>
                 <th>Contact</th>
                 <th>Amount Due</th>
+                <th>Pay dues</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -182,6 +208,8 @@ export default function Retailers() {
                     <td>{r.address || "—"}</td>
                     <td>{r.contactNumber || "—"}</td>
                     <td><b>₹{Number(r.total_dues).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}) ||0}</b></td>
+                    <td><button className="delete-icon-btn" onClick={()=>handlePaydues(r.id)}>
+                      Pay dues</button></td>
                     <td className="action-buttons">
                       <button
                         className="delete-icon-btn"
@@ -193,7 +221,7 @@ export default function Retailers() {
                         className="delete-icon-btn"
                         onClick={() => handleDelete(r.id)}
                       >
-                        Close AAccount
+                        Close Account
                       </button>
                     </td>
                   </tr>

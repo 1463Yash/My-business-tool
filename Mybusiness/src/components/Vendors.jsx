@@ -37,11 +37,12 @@ export default function Vendors() {
   };
 
   const handleAddOrUpdate = async () => {
-    if (form.name.trim() === "") return;
+    const name=form.name.trim();
+    if (!name) return;
 
     const duplicate = vendors.some(
       (v) =>
-        v.name.toLowerCase() === form.name.trim().toLowerCase() &&
+        v.name.trim().toUpperCase() === form.name.trim().toUpperCase() &&
         v.id !== editingId
     );
     if (duplicate) {
@@ -149,8 +150,8 @@ export default function Vendors() {
           Cancel
         </button>)}
       </div>
-
-      {filteredVendors.length > 0 ? (
+      <div className="table-container">
+        {filteredVendors.length > 0 ? (
         <table className="vendors-table">
           <thead>
             <tr>
@@ -160,6 +161,7 @@ export default function Vendors() {
               <th>Account No.</th>
               <th>IFSC</th>
               <th>Amount due</th>
+              <th>Pay dues</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -172,6 +174,7 @@ export default function Vendors() {
                 <td>{v.accountNumber || "—"}</td>
                 <td>{v.ifscCode || "—"}</td>
                 <td><b>₹{Number(v.total_dues).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}) || 0}</b></td>
+                <td><button className="delete-icon-btn">Pay dues</button></td>
                 <td>
                   <button className="delete-icon-btn" onClick={() => handleEdit(v)}>Edit</button>
                   <button className="delete-icon-btn" onClick={() => handleDelete(v.id)} style={{ marginLeft: "6px" }}>Close Account</button>
@@ -183,6 +186,8 @@ export default function Vendors() {
       ) : (
         <p>No vendors found.</p>
       )}
+      </div>
+      
     </div>
   );
 }

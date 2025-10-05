@@ -7,7 +7,7 @@ export default function Add_product_code() {
   const [productcode, setCode] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [vendors, setVendors] = useState([]);
-  const[stockCode,setStockecode]=useState([]);
+  const [stockCode,setStockecode]=useState([]);
   const [form, setForm] = useState({
     code: "",
     HSN: "",
