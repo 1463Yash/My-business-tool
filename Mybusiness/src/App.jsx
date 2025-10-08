@@ -13,7 +13,6 @@ import Add_product_code from "./components/Add_product_code";
 import VendorBilling from "./components/Billing/VendorBilling";
 import RetailerBilling from "./components/Billing/RetailerBilling";
 import "./App.css";
-
 export default function App() {
   return (
     <Router>
@@ -43,8 +42,7 @@ export default function App() {
             </NavLink>
             <NavLink to="/addproductcode" className="nav-item">
               Add Product code
-            </NavLink>
-          </nav>
+            </NavLink>          </nav>
         </aside>
 
         <main className="main-content">

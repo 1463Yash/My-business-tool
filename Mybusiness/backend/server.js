@@ -7,7 +7,8 @@ const productCodesRoutes = require("./routes/productCodes");
 const retailerbillRoutes=require("./routes/retailer-bill");
 const vendorsbillRoutes=require("./routes/vendors-billing");
 const inventoryRoutes=require("./routes/inventory");
-
+const retailerpayRoutes=require("./routes/payduespayment/retailerspaydues");
+const vendorpayRoutes=require("./routes/payduespayment/vendorspaydues");
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -21,6 +22,8 @@ app.use("/api/addproductcode", productCodesRoutes);
 app.use("/retailer-billing",retailerbillRoutes);
 app.use("/vendor-billing",vendorsbillRoutes);
 app.use("/inventory",inventoryRoutes);
+app.use("/retailers/paydues",retailerpayRoutes);
+app.use("/vendors/paydues",vendorpayRoutes);
 // Server start
 app.listen(3000, () => {
   console.log("🚀 Server is running on http://localhost:3000");

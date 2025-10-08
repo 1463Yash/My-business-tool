@@ -169,7 +169,7 @@ body {
   border-radius: 6px;
   padding: 6px 12px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: 300;
   transition: background-color 0.2s;
 }
 
@@ -252,6 +252,37 @@ body {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.add-btn {
+  position: relative;
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background-color: black;
+  color: #fff;
+  text-align: center;
+  padding: 5px;
+  border-radius: 5px;
+
+  /* Position the tooltip */
+  position: absolute;
+  bottom: 125%; /* above the button */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+
+  /* Fade in tooltip */
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
 }
 
 

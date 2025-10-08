@@ -1,5 +1,6 @@
 // Add_product_code.jsx
 import React, { useState, useEffect } from "react";
+import { FolderInput ,Pencil,Trash2,UserPlus} from "lucide-react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 
@@ -166,8 +167,9 @@ export default function Add_product_code() {
           className="input-field"
           style={{ maxWidth: "250px" }}
         />
-        <button onClick={handleExport} className="add-btn">
-          Export to Excel
+        <button onClick={handleExport} className="add-btn tooltip">
+          <FolderInput />
+          <span className="tooltiptext">Export to Excel</span>
         </button>
       </div>
 
@@ -218,8 +220,11 @@ export default function Add_product_code() {
             </option>
           ))}
         </select>
-        <button onClick={handleAddOrUpdate} className="add-btn">
-          {editingCode ? "Update Product" : "Add Product"}
+        <button onClick={handleAddOrUpdate} className="add-btn tooltip">
+          {editingCode ? "Update Product" : <UserPlus />}
+          {editingCode ?   <span className="tooltiptext">Update product code</span>:
+          <span className="tooltiptext">Add product code</span>}
+          
         </button>
         {editingCode && (
           <button
@@ -258,14 +263,14 @@ export default function Add_product_code() {
                     className="delete-icon-btn"
                     onClick={() => handleEdit(v)}
                   >
-                    Edit
+                    <Pencil/>
                   </button>
                   <button
                     className="delete-icon-btn"
                     onClick={() => handleDelete(v.code)}
                     style={{ marginLeft: "6px" }}
                   >
-                    Delete
+                    <Trash2/>
                   </button>
                 </td>
               </tr>

@@ -4,15 +4,28 @@ const db = require("../db");
 
 // GET all retailers with dues
 router.get("/", (req, res) => {
-  const sql="SELECT r.id,r.name,r.contactNumber,r.address,IFNULL(SUM(rb.final_amount), 0) AS total_dues FROM retailers r LEFT JOIN retailersbook rb  ON r.id = rb.retailersid GROUP BY r.id";
+  const sql = `SELECT 
+    r.id,
+    r.name,
+    r.contactNumber,
+    r.address,
+    IFNULL(SUM(rb.final_amount), 0) - IFNULL(SUM(p.total_paid), 0) AS total_dues
+FROM retailers r
+LEFT JOIN retailersbook rb ON r.id = rb.retailersid
+LEFT JOIN (
+    SELECT retailerid, SUM(amount) AS total_paid
+    FROM paymentfromretailer
+    GROUP BY retailerid
+) p ON r.id = p.retailerid
+GROUP BY r.id, r.name, r.contactNumber, r.address;
+`;
+
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ message: "Server error" });
     res.json(results);
     console.log("Retalier loaded successfully!");
-    
   });
-  });
-
+});
 
 // POST new retailer
 router.post("/", (req, res) => {
@@ -23,12 +36,12 @@ router.post("/", (req, res) => {
   const sql =
     "INSERT INTO retailers (name, address, contactNumber) VALUES (?, ?, ?)";
   db.query(sql, [name, address, contactNumber], (err, result) => {
-    if (err) return res.status(500).json({ message: "Failed to save retailer" });
+    if (err)
+      return res.status(500).json({ message: "Failed to save retailer" });
     res.status(201).json({ id: result.insertId, name, address, contactNumber });
     console.log("Retalier added successfully!");
   });
-  });
-
+});
 
 // PUT update retailer
 router.put("/:id", (req, res) => {
@@ -37,17 +50,18 @@ router.put("/:id", (req, res) => {
   const sql =
     "UPDATE retailers SET name=?, address=?, contactNumber=?, dues=? WHERE id=?";
   db.query(sql, [name, address, contactNumber, dues || 0, id], (err) => {
-    if (err) return res.status(500).json({ message: "Failed to update retailer" });
+    if (err)
+      return res.status(500).json({ message: "Failed to update retailer" });
     res.json({ message: "Retailer updated" });
     console.log("Retalier Updated successfully!");
   });
-  });
-
+});
 
 // DELETE retailer
 router.delete("/:id", (req, res) => {
   db.query("DELETE FROM retailers WHERE id=?", [req.params.id], (err) => {
-    if (err) return res.status(500).json({ message: "Failed to delete retailer" });
+    if (err)
+      return res.status(500).json({ message: "Failed to delete retailer" });
     res.json({ message: "Retailer deleted" });
     console.log("Retalier deleted successfully!");
   });

@@ -1,41 +1,34 @@
 import React, { useState, useEffect } from "react";
+import { FolderInput } from "lucide-react";
 import axios from "axios";
 import * as XLSX from "xlsx";
 import "reactjs-popup/dist/index.css";
-
-const  BASE_URL = "http://localhost:3000";
+import PayDuesPopup from "./Popupforpayment/PaymentDuespopup";
+const BASE_URL = "http://localhost:3000";
 
 export default function Retailers() {
   const [retailers, setRetailers] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [duesForm, setDues] = useState({
-      id:"",
-      date: new Date().toISOString().split("T")[0],
-      amount: "",
-      comments: "",
-      paymentMode: "Cash",
-    });
-
+  const [showVisible,setVisible]=useState(false);
+  const [selectedUserid,setSelecteduserid]=useState(null);
   const [form, setForm] = useState({
     name: "",
     address: "",
     contactNumber: "",
-    total_dues:""
+    total_dues: "",
   });
   useEffect(() => {
     fetchRetailers();
   }, []);
 
   // ----------------- FETCH RETAILERS WITH BILLS -----------------
-  const fetchRetailers=async()=>{
-    try{
-      const res=await axios.get("http://localhost:3000/retailers");
+  const fetchRetailers = async () => {
+    try {
+      const res = await axios.get("http://localhost:3000/retailers");
       setRetailers(res.data);
-    }
-    catch(err){
-      console.log("Error in fetching retailers data",err);
-  
+    } catch (err) {
+      console.log("Error in fetching retailers data", err);
     }
   };
 
@@ -58,7 +51,7 @@ export default function Retailers() {
     try {
       if (editingId) {
         await axios.put(`${BASE_URL}/retailers/${editingId}`, form);
-      } else {  
+      } else {
         await axios.post(`http://localhost:3000/retailers`, form);
       }
       setForm({ name: "", address: "", contactNumber: "" });
@@ -72,10 +65,8 @@ export default function Retailers() {
 
   // ----------------- DELETE RETAILER -----------------
   const handleDelete = async (id) => {
-    const retailerid=retailers.find(
-      (r) => r.id===id
-    );
-    if(retailerid && Number(retailerid.total_dues)>0){
+    const retailerid = retailers.find((r) => r.id === id);
+    if (retailerid && Number(retailerid.total_dues) > 0) {
       return alert(`Cannot close this account, First clear dues`);
     }
     const confirm = prompt("Type 'yes' to delete this retailer.");
@@ -92,7 +83,7 @@ export default function Retailers() {
 
   const handleEdit = (retailer) => {
     setForm(retailer);
-    setEditingId(retailer.id);
+    setEditingId(retailers.id);
   };
 
   // ----------------- EXPORT TO EXCEL -----------------
@@ -103,7 +94,7 @@ export default function Retailers() {
     XLSX.utils.book_append_sheet(wb, ws, "Retailers");
     XLSX.writeFile(wb, "retailers.xlsx");
   };
- 
+
   // ----------------- FILTER RETAILERS -----------------
   const filteredRetailers = retailers.filter((r) => {
     const q = searchQuery.toLowerCase();
@@ -114,28 +105,27 @@ export default function Retailers() {
     );
   });
 
-// ---------------------Handle Pay dues--------------
-  const handlePaydues=async(id)=>{
-    const retailer=retailers.find(
-      (r)=>r.id===id
-    );
-    setDues.id=id;
-    setDues.amount=prompt(`Enter amount to be pay`);
-    setDues.comments=prompt(`Any comments`);
-    setDues.data=prompt(Date);
-    setDues.paymentMode=prompt(`Paymode`);
-    console.log();
+
+  const  handlepaydues=async(id)=>{
+    const retailerdues=retailers.find(r=> r.id===id);
+    const dues=retailerdues.total_dues;
+    console.log(dues);
+    console.log(id);
+    if(dues <=0){
+      alert (`Cannot Pay current dues is 0`);
+      return;
+    }
+    else{
+      setSelecteduserid(id);
+      setVisible(true);
+    }
   };
-
-
-
-
   return (
     <div className="main-content">
       <h2>Retailers</h2>
 
       {/* Search + Export */}
-      <div className="top-bar">
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
         <input
           type="text"
           placeholder="Search retailers..."
@@ -143,8 +133,9 @@ export default function Retailers() {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="input-field"
         />
-        <button onClick={handleExport} className="add-btn">
-          Export to Excel
+        <button onClick={handleExport} className="add-btn tooltip">
+          <FolderInput />
+          <span className="tooltiptext">Export to Excel</span>
         </button>
       </div>
 
@@ -174,13 +165,20 @@ export default function Retailers() {
         <button onClick={handleAddOrUpdate} className="add-btn">
           {editingId ? "Update Retailer" : "Add Retailer"}
         </button>
-        {editingId &&(
-          <button className="add-btn"
-          style={{backgroundColor:"gray",marginLeft:"10px"}}
-          onClick={()=>{
-            setForm({name:"",contactNumber:"",address:"",total_dues:""})
-            setEditingId(null);
-          }}>
+        {editingId && (
+          <button
+            className="add-btn"
+            style={{ backgroundColor: "gray", marginLeft: "10px" }}
+            onClick={() => {
+              setForm({
+                name: "",
+                contactNumber: "",
+                address: "",
+                total_dues: "",
+              });
+              setEditingId(null);
+            }}
+          >
             Cancel
           </button>
         )}
@@ -207,9 +205,30 @@ export default function Retailers() {
                     <td>{r.name}</td>
                     <td>{r.address || "—"}</td>
                     <td>{r.contactNumber || "—"}</td>
-                    <td><b>₹{Number(r.total_dues).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2}) ||0}</b></td>
-                    <td><button className="delete-icon-btn" onClick={()=>handlePaydues(r.id)}>
-                      Pay dues</button></td>
+                    <td>
+                      <b>
+                        ₹
+                        {Number(r.total_dues).toLocaleString("en-IN", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        }) || 0}
+                      </b>
+                    </td>
+                    <td>
+                      <button
+                        className="delete-icon-btn"
+                        onClick={()=>handlepaydues(r.id)}
+                      >
+                        Pay dues
+                      </button>
+                      {showVisible &&
+                      (<PayDuesPopup 
+                       userid={selectedUserid}
+                       popupdata={retailers}
+                       onClose={()=>setVisible(false)}
+                       type="retailer"
+                        />)}
+                    </td>
                     <td className="action-buttons">
                       <button
                         className="delete-icon-btn"
