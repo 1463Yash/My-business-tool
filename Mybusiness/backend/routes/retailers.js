@@ -4,21 +4,23 @@ const db = require("../db");
 
 // GET all retailers with dues
 router.get("/", (req, res) => {
-  const sql = `SELECT 
-    r.id,
-    r.name,
-    r.contactNumber,
-    r.address,
-    IFNULL(SUM(rb.final_amount), 0) - IFNULL(SUM(p.total_paid), 0) AS total_dues
+  const sql = ` SELECT
+  r.id,
+  r.name,
+  r.contactNumber,
+  r.address,
+  COALESCE(rb.total_final_amount, 0) - COALESCE(p.total_paid, 0) AS total_dues
 FROM retailers r
-LEFT JOIN retailersbook rb ON r.id = rb.retailersid
 LEFT JOIN (
-    SELECT retailerid, SUM(amount) AS total_paid
-    FROM paymentfromretailer
-    GROUP BY retailerid
-) p ON r.id = p.retailerid
-GROUP BY r.id, r.name, r.contactNumber, r.address;
-`;
+  SELECT retailersid, SUM(final_amount) AS total_final_amount
+  FROM retailersbook
+  GROUP BY retailersid
+) rb ON rb.retailersid = r.id
+LEFT JOIN (
+  SELECT retailerid, SUM(amount) AS total_paid
+  FROM paymentfromretailer
+  GROUP BY retailerid
+) p ON p.retailerid = r.id;`;
 
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json({ message: "Server error" });
