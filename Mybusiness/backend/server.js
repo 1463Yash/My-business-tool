@@ -9,6 +9,7 @@ const vendorsbillRoutes=require("./routes/vendors-billing");
 const inventoryRoutes=require("./routes/inventory");
 const retailerpayRoutes=require("./routes/payduespayment/retailerspaydues");
 const vendorpayRoutes=require("./routes/payduespayment/vendorspaydues");
+const loginpageRoutes=require("./routes/LoginPage/loginPage")
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -24,6 +25,7 @@ app.use("/vendor-billing",vendorsbillRoutes);
 app.use("/inventory",inventoryRoutes);
 app.use("/retailers/paydues",retailerpayRoutes);
 app.use("/vendors/paydues",vendorpayRoutes);
+app.use("/loginpage",loginpageRoutes);
 // Server start
 app.listen(3000, () => {
   console.log("🚀 Server is running on http://localhost:3000");

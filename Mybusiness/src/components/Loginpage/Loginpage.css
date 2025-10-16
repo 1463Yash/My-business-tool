@@ -1,0 +1,66 @@
+.login-title{
+  text-align: center;
+  color: #0379ef;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+.pop-mail-container{
+  position:absolute;
+  top: 40%;
+  right: 13%;
+  transform: translate(-50%,-50%);
+  width: 30%;
+  background-color:whitesmoke;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.9);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #1092e8;
+  z-index: 9999;
+}
+.Send-btn{
+  color: white;
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.2s ease-in-out;
+  background: #1e85f3;
+}
+.Send-btn:hover{
+    background-color: #0853a3;
+}
+.mail-input-field{
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+.mail-input-field input,
+.mail-input-field select,
+.mail-input-field textarea {
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 18px;
+  outline: none;
+  transition: 0.2s ease-in-out;
+}
+
+.mail-input-field input:focus,
+.mail-input-field select:focus,
+.mail-input-field textarea:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 3px rgba(255, 0, 0, 0.3);
+}
+
+.cross-btn{
+    border: none;
+    background-color: whitesmoke;
+}
+
+.cross-btn:hover{
+    color: red;
+    transition: 0.3s;
+    
+}

@@ -1,3 +1,19 @@
+ import React, { useRef, useState } from 'react';
+import { CircleUserRound } from 'lucide-react';
+import Loginpage from "./Loginpage/Loginmail";
+
 export default function Home() {
-  return <h1>Welcome to the Business Tool Dashboard!</h1>;
+  const [openLogin, showLogin] = useState(false);
+  const handleloginpopup=()=>{
+    showLogin(true);
+  }
+  return (
+    <div className='main-header'>
+      <h2>HOME</h2>
+      <CircleUserRound onClick={handleloginpopup} />
+      {openLogin && (
+        <Loginpage onClose={() => showLogin(false)} />
+      )}
+    </div>
+  );  
 }
