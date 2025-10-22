@@ -23,7 +23,14 @@ export default function Loginmail({onClose}) {
       const res=await axios.get("http://localhost:3000/loginpage",
         {params:{email:formEmail.email}
       });
+      if(Number(res.data)==1){
+        console.log("Email is already exits!")
+      }
+      else{
+        console.log("Email does not exits!")
+      }
       console.log(res.data);
+     
     }
     catch(err){
       console.log(err);
