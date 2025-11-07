@@ -13,6 +13,7 @@ router.get("/", (req, res) => {
       if (results[0].exitsmail == 0) {
         sendOTP(email).then((results) => {
             if(results.success){
+              console.log("Email sent suuccessfully!");
                 return res.json(results);
             }
             else{
@@ -25,4 +26,6 @@ router.get("/", (req, res) => {
     }
   });
 });
+
+
 module.exports = router;

@@ -1,0 +1,195 @@
+.main-form {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 25%;
+  left: 40%;
+  width: 20%;
+  background-color: whitesmoke;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+  z-index: 9999;
+
+  /* glow border */
+  border: 2px solid #9397b1;
+  animation: glow 1.8s infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 8px #9397b1, 0 0 15px #9397b1;
+  }
+  to {
+    box-shadow: 0 0 20px #9397b1, 0 0 40px #9397b1;
+  }
+}
+
+.signin-heading--fancy{
+  --accent-start: #231e83;
+  --accent-end:   #0ed0f2;
+  border: 2px solid wheat;
+  border-radius: 10px;
+  cursor:grab;
+  margin: 0 0 0.5rem 0;
+  padding: 8px;
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 2rem;        /* 32px */
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;     /* gradient text */
+  display: inline-block;
+  position: relative;
+}
+
+.signin-heading--fancy:hover{
+    --accent-start: #211e83;
+    border-color: #211e83;
+  --accent-end:   #f20e0e;
+
+}
+
+/* subtle underline accent */
+.signin-heading--fancy::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  height: 4px;
+  width: 48%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(79,70,229,0.18), rgba(6,182,212,0.18));
+  transform-origin: left;
+  transition: width 240ms cubic-bezier(.2,.8,.2,1);
+}
+
+/* hover effect (for non-touch) */
+@media (hover: hover) and (pointer: fine){
+  .signin-heading--fancy:hover::after{
+    width: 100%;
+  }
+}
+
+/* reduce motion accessibility */
+@media (prefers-reduced-motion: reduce){
+  .signin-heading--fancy::after,
+  .signin-heading--fancy{ transition: none; }
+}
+
+/* responsive */
+@media (max-width: 480px){
+  .signin-heading--fancy{ font-size: 1.5rem; }
+  .signin-heading--fancy::after{ bottom: -6px; height: 3px; }
+}
+
+
+.input-text{
+  padding: 10px;
+  margin: 6px 10px 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width:auto;
+  font-size: 14px;
+  background-color: #fff;
+  transition: border-color 0.2s;
+  margin-top: 20px;
+}
+
+.input-text:focus {
+  outline: none;
+  border-color: #1a237e;
+  box-shadow: 0 0 0 2px rgba(26, 35, 126, 0.1);
+}
+
+.input-text::placeholder {
+  color: #888;
+  font-size: large;
+}
+.forget-pass{
+    text-decoration: none;
+    margin-top: 25px;
+}
+
+.sign-btn{
+padding: 10px 16px;
+  background-color: #1a237e;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: large;
+  transition: background-color 0.2s;
+  margin-top: 20px; 
+}
+
+.sign-btn:hover {
+  background-color: #283593;
+}
+
+.forget-pass:hover{
+    color: #1a237e;;
+}
+
+.close-btn {
+  width: 30px;
+  height: 30px;
+  margin-left: auto;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background-color: rgb(220, 220, 220);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  color: #333;
+}
+
+/* hover effect */
+/* .close-btn:hover {
+  background-color: #ff3b3b;
+  color: white;
+  box-shadow: 0 0 10px rgba(255, 59, 59, 0.6);
+  transform: scale(1.1) rotate(5deg);
+} */
+
+.close-btn:hover {
+  background: linear-gradient(45deg, #ff004c, #ff7a00);
+  color: white;
+  box-shadow: 0 0 12px #ff004c, 0 0 25px #ff7a00;
+  transform: scale(1.15);
+}
+
+/* optional small click animation */
+.close-btn:active {
+  transform: scale(0.95);
+}
+
+/* icon adjustment */
+.close-btn svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+
+.header-top{
+  margin-top: 25px;
+  display: flex;
+  justify-content: space-between;
+}
+.box-icon{
+  width: 5px;
+  height: 5px;
+  margin-top: 20px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}

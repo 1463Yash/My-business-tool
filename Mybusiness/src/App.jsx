@@ -12,7 +12,7 @@ import Retailers from "./components/Retailers";
 import Add_product_code from "./components/Add_product_code";
 import VendorBilling from "./components/Billing/VendorBilling";
 import RetailerBilling from "./components/Billing/RetailerBilling";
-import Loginmail from "./components/Loginpage/Loginmail";
+import Authfrom from "./components/Authforms/Signin"
 import "./App.css";
 export default function App() {
   return (
@@ -44,7 +44,7 @@ export default function App() {
             <NavLink to="/addproductcode" className="nav-item">
               Add Product code
             </NavLink>
-            <NavLink to="/loginpage" className="nav-item">Login page test</NavLink>   
+            <NavLink to="/Authform" className="nav-item">Authformtest</NavLink>
             </nav>
         </aside>
 
@@ -57,7 +57,7 @@ export default function App() {
             <Route path="/vendor-billing" element={<VendorBilling />} />
             <Route path="/retailer-billing" element={<RetailerBilling />} />
             <Route path="/addproductcode" element={<Add_product_code />} />
-            <Route path="/loginpage" element={<Loginmail/>}/>
+            <Route path="/Authform" element={<Authfrom/>}/>
           </Routes>
         </main>
       </div>
