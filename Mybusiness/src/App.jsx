@@ -12,7 +12,7 @@ import Retailers from "./components/Retailers";
 import Add_product_code from "./components/Add_product_code";
 import VendorBilling from "./components/Billing/VendorBilling";
 import RetailerBilling from "./components/Billing/RetailerBilling";
-import Authfrom from "./components/Authforms/Signin"
+import Authfrom from "./components/Authforms/OTPverification";
 import "./App.css";
 export default function App() {
   return (

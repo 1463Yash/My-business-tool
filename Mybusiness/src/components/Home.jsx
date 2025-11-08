@@ -1,6 +1,6 @@
  import React, { useState } from 'react';
 import { UserRound } from 'lucide-react';
-import Signin from './Authforms/Signin';
+import Authform from './Authforms/Authfrom';
 
 export default function Home() {
   const [visible, setVisible] = useState(false);
@@ -15,7 +15,7 @@ export default function Home() {
         {!visible && <UserRound />}
       </div>
 
-      {visible && <Signin onClose={handleSigninClose} />}
+      {visible && <Authform onClose={handleSigninClose} />}
 
     </div>
   );
