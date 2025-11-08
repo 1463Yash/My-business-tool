@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Mail, X, Lock } from "lucide-react";
 import "./Auth.css";
 import OTPverification from "./OTPverification";
+import Passwordconfirme from "./Passwordconfirme";
 export default function Authfrom({ onClose }) {
   const [signin, setSignin] = useState({ email: "", password: "" });
 
