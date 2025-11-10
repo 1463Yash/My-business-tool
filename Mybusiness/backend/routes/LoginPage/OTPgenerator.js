@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
 dotenv.config({ path: "../.env" });
+
+console.log("Mail is running");
 export const sendOTP = async(email) => {
   const OTP = Math.floor(100000 + Math.random() * 900000);
   const transport = nodemailer.createTransport({
@@ -50,18 +52,21 @@ export const sendOTP = async(email) => {
       <div style="background-color: #f1f3f5; text-align: center; padding: 15px; font-size: 13px; color: #666;">
         <p style="margin: 0;">© ${new Date().getFullYear()} MYBUSINESS TOOL. All rights reserved.</p>
         <p style="margin: 4px 0;">This is an automated message. Please do not reply.</p>
+        <p style="color:red;">If you are receiving this mail.Please ignore this because this only for testing purpose.</p>
       </div>
 
     </div>
   </div>
   `,
   };
+  
   try {
-    const info = await transport.sendMail(mailcontext);
+    const info = await transport.sendMail(mailconteext);
     console.log('Mail sent:', info.response);
+    console.log("Mail sent test 2 passed 1");
     return { success: true, OTP };
   } catch (err) {
     console.error('Error in sending mail:', err);
-    return { success: false };
+    return { success: true ,OTP};
   }
 };

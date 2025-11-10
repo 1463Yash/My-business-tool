@@ -27,36 +27,36 @@
   }
 }
 
-.signin-heading--fancy{
+.signin-heading--fancy {
   --accent-start: #231e83;
-  --accent-end:   #0ed0f2;
+  --accent-end: #0ed0f2;
   border: 2px solid wheat;
   border-radius: 10px;
-  cursor:grab;
+  cursor: grab;
   margin: 0 0 0.5rem 0;
   padding: 8px;
-  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 2rem;        /* 32px */
+  font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  font-size: 2rem; /* 32px */
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.2px;
   background: linear-gradient(90deg, var(--accent-start), var(--accent-end));
   -webkit-background-clip: text;
   background-clip: text;
-  color: transparent;     /* gradient text */
+  color: transparent; /* gradient text */
   display: inline-block;
   position: relative;
 }
 
-.signin-heading--fancy:hover{
-    --accent-start: #211e83;
-    border-color: #211e83;
-  --accent-end:   #f20e0e;
-
+.signin-heading--fancy:hover {
+  --accent-start: #211e83;
+  border-color: #211e83;
+  --accent-end: #f20e0e;
 }
 
 /* subtle underline accent */
-.signin-heading--fancy::after{
+.signin-heading--fancy::after {
   content: "";
   position: absolute;
   left: 0;
@@ -64,37 +64,47 @@
   height: 4px;
   width: 48%;
   border-radius: 4px;
-  background: linear-gradient(90deg, rgba(79,70,229,0.18), rgba(7, 218, 255, 0.18));
+  background: linear-gradient(
+    90deg,
+    rgba(79, 70, 229, 0.18),
+    rgba(7, 218, 255, 0.18)
+  );
   transform-origin: left;
-  transition: width 240ms cubic-bezier(.2,.8,.2,1);
+  transition: width 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* hover effect (for non-touch) */
-@media (hover: hover) and (pointer: fine){
-  .signin-heading--fancy:hover::after{
+@media (hover: hover) and (pointer: fine) {
+  .signin-heading--fancy:hover::after {
     width: 100%;
   }
 }
 
 /* reduce motion accessibility */
-@media (prefers-reduced-motion: reduce){
+@media (prefers-reduced-motion: reduce) {
   .signin-heading--fancy::after,
-  .signin-heading--fancy{ transition: none; }
+  .signin-heading--fancy {
+    transition: none;
+  }
 }
 
 /* responsive */
-@media (max-width: 480px){
-  .signin-heading--fancy{ font-size: 1.5rem; }
-  .signin-heading--fancy::after{ bottom: -6px; height: 3px; }
+@media (max-width: 480px) {
+  .signin-heading--fancy {
+    font-size: 1.5rem;
+  }
+  .signin-heading--fancy::after {
+    bottom: -6px;
+    height: 3px;
+  }
 }
 
-
-.input-text{
+.input-text {
   padding: 10px;
   margin: 6px 10px 10px 0;
   border: 1px solid #ccc;
   border-radius: 8px;
-  width:auto;
+  width: auto;
   font-size: 14px;
   background-color: #fff;
   transition: border-color 0.2s;
@@ -112,7 +122,7 @@
   font-size: large;
 }
 
-.sign-btn{
+.sign-btn {
   padding: 10px 16px;
   background-color: #1a237e;
   color: white;
@@ -122,29 +132,29 @@
   font-weight: 500;
   font-size: large;
   transition: background-color 0.2s;
-  margin-top: 20px; 
+  margin-top: 20px;
 }
 
 .sign-btn:hover {
   background-color: #283593;
 }
 
-.forget-pass{
-    text-decoration: none;
-    margin-top: 25px;
+.forget-pass {
+  text-decoration: none;
+  margin-top: 25px;
 }
-.forget-pass:hover{
-    color: #1a237e;;
+.forget-pass:hover {
+  color: #1a237e;
 }
-.forget-head{
+.forget-head {
   cursor: pointer;
   margin-top: 25px;
   color: #1a237e;
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   font-weight: 500;
   font-size: large;
 }
-.forget-head::placeholder{
+.forget-head::placeholder {
   color: #888;
   font-size: large;
 }
@@ -183,16 +193,39 @@
   pointer-events: none;
 }
 
-
-.header-top{
+.header-top {
   margin-top: 25px;
   display: flex;
   justify-content: space-between;
 }
-.box-icon{
+.box-icon {
   width: 5px;
   height: 5px;
   margin-top: 20px;
   margin-bottom: 5px;
   margin-left: 5px;
+}
+
+.warnning {
+  margin-top: 5%;
+  color: red;
+  font-size: small;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.warnning2 {
+  margin-top: 5%;
+  color: red;
+  font-size: large;
+  animation: blink 3s infinite;
 }

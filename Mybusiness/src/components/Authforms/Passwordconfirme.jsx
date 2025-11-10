@@ -15,7 +15,6 @@ export default function Passwordconfirme() {
         placeholder="Create Password"
         value={createpass.password}
         className="input-text"
-        required="true"
         onChange={(e) =>
           setPassword({ ...createpass, password: e.target.value })
         }
