@@ -19,8 +19,7 @@ export default function App() {
     <Router>
       <div className="app-container">
         <aside
-          className="sidebar"
-        >
+          className="sidebar">
           <h2>Business Tool</h2>
           <nav className="nav-menu">
             <NavLink to="/" end className="nav-item">

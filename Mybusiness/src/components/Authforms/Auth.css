@@ -229,3 +229,20 @@
   font-size: large;
   animation: blink 3s infinite;
 }
+
+.message{
+  font-size: medium;
+  color: green;
+  margin-bottom: "50px";
+}
+
+.refresh{
+  margin-top: 10px;
+  display: flex;
+  color: rgb(129, 129, 223);
+  font-family: unset;
+  cursor:context-menu;
+}
+.refresh:hover{
+  color:blue ;
+}

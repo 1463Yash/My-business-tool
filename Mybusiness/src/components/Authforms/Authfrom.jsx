@@ -1,11 +1,10 @@
 import React, { useRef, useState } from "react";
 import axios from "axios";
-import { Mail, X, Lock, AlignRight, Binary } from "lucide-react";
+import { Mail, X, Lock, RefreshCw} from "lucide-react";
 import "./Auth.css";
 import OTPverification from "./OTPverification";
 import Passwordconfirme from "./Passwordconfirme";
 export default function Authfrom({ onClose }) {
-
   const [signin, setSignin] = useState({ email: "", password: "" });
 
   const [signup, setSignup] = useState({ email: "" });
@@ -16,30 +15,45 @@ export default function Authfrom({ onClose }) {
 
   const [show, setShow] = useState(false);
 
+  const [showin, setIn] = useState(true);
+
+  const [showup, setUp] = useState(false);
+
   const [forget, setForget] = useState(false);
 
   const [exits, setexits] = useState(true);
 
   const [warn, setWarn] = useState(false);
 
-  const [OTP,setOTP]=useState();
+  const [OTP, setOTP] = useState();
 
-  const [OTPstatus,setOTPstatus]=useState(false);
+  const [OTPstatus, setOTPstatus] = useState();
 
-  const [emilstatus,setEmailstatus]=useState();
+  const [emilstatus, setEmailstatus] = useState();
 
+  const handleClose = () => {
+    setIn(true);
+    setForget(false);
+    setUp(false);
+  };
 
   const handleOpen = () => {
     setForget(false);
-    setShow(true);
+    setUp(true);
+    setIn(false);
   };
-  const handleClose = () => {
-    setShow(false);
-  };
+
   const handleforgetpassword = (e) => {
     setForget(true);
-    setShow(true);
+    setIn(false);
   };
+
+  const handlerefresh=(e)=>{
+    setIn(true);
+    setUp(false);
+    setWarn(false);
+  }
+
   const handlesign = async () => {
     if (forget) {
       // Forget Password Portion
@@ -51,29 +65,26 @@ export default function Authfrom({ onClose }) {
           params: { email: signup.email },
         });
         const value = res.data.dbresults.exitsemail;
-        console.log("Email exitings ",Boolean(res.data.dbresults.exitsemail));
-        console.log("OTP suceess ",res.data.OTPresults.success);
-        console.log("OTP VALUE ",res.data.OTPresults.OTP);
+        console.log("Email exitings ", Boolean(res.data.dbresults.exitsemail));
+        console.log("OTP suceess ", res.data.OTPresults.success);
+        console.log("OTP VALUE ", res.data.OTPresults.OTP);
         setOTP(res.data.OTPresults.OTP);
         setOTPstatus(res.data.OTPresults.success);
         setEmailstatus(res.data.dbresults.exitsemail);
-        // console.log();
-        // if()
         setexits(Boolean(value));
         setWarn(Boolean(value));
+
+        if(exits){
+          setHead(false);
+          setUp(false);
+        }
+
       } catch (err) {
         console.log("Error in fetching Sign up data", err);
       }
     }
-
-    if(setOTPstatus){
-      setHead(false);
-
-
-    }
-    
-
   };
+
   return (
     <div className="main-form">
       <div className="close-btn" onClick={onClose}>
@@ -81,7 +92,7 @@ export default function Authfrom({ onClose }) {
       </div>
       {head && (
         <div className="header-top">
-          <h1 className="signin-heading--fancy"  onClick={handleClose}>
+          <h1 className="signin-heading--fancy" onClick={handleClose}>
             Sign in
           </h1>
           <h1 className="signin-heading--fancy" onClick={handleOpen}>
@@ -91,7 +102,7 @@ export default function Authfrom({ onClose }) {
       )}
 
       {/* Signin portion */}
-      {!show && (
+      {showin && (
         <>
           <div className="box-icon">
             <Mail />
@@ -123,41 +134,70 @@ export default function Authfrom({ onClose }) {
       )}
 
       {/* Signup portion */}
-
-      {show && (
+      {showup && (
         <>
-          {OTPstatus? <div className="warnning2">Please check your email for {signup.email}  for OTP.</div>:<div className="warnning">Please enter valid email.</div>}
+          <div className="warnning">Please enter valid email.</div>
           <div className="box-icon">
             <Mail />
           </div>
-          {forget && <div className="forget-head">Forget Password?</div>}
           <input
             type="email"
             placeholder="Email"
             value={signup.email}
-            onChange={
-              forget
-                ? (e) =>
-                    setEmailforget({ ...emailforget, email: e.target.value })
-                : (e) => setSignup({ ...signup, email: e.target.value })
+            onChange={(e) =>setSignup({ ...signup, email: e.target.value })
             }
             className="input-text"
           />
           <button className="sign-btn" onClick={handlesign}>
-            {forget ? "Send OTP" : "Sign Up"}
+            Sign Up
           </button>
         </>
       )}
 
-      {warn && (
-        <div className="warnning2">
+      {/* Forget password */}
+
+      {forget && (
+        <>
+          <div className="forget-head">Forget Password?</div>
+          <div className="box-icon">
+            <Mail />
+          </div>
+          <input
+            type="email"
+            placeholder="Email"
+            value={signup.email}
+            onChange={(e)=>setEmailforget({ ...emailforget, email: e.target.value })}
+            className="input-text"
+          />
+          <button className="sign-btn">
+            Send OTP
+          </button>
+        </>
+      )}
+
+      {/* warnning portion and OTP sent message */}
+      {warn? (
+       <> <div className="warnning2">
           This email is already exits.
           <br />
           Please Sign In.
         </div>
-      )}
-
+        <div className="refresh" onClick={handlerefresh}><RefreshCw />Click here to signin</div>
+        </>
+      ) : (
+        (OTPstatus)? (
+          <div className="message">
+            OTP sent successfully to your email {signup.email}.<br></br>
+            <span style={{ color: "green" }}>Successfully...</span>
+          </div>
+        ):(
+          <div className="warnning">We are unable to send you OTP</div>
+        )
+      
+      )
+        }
       {!exits && <OTPverification />}
+
     </div>
   );
 }

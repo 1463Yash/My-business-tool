@@ -67,6 +67,6 @@ export const sendOTP = async(email) => {
     return { success: true, OTP };
   } catch (err) {
     console.error('Error in sending mail:', err);
-    return { success: true ,OTP};
+    return { success:true,OTP};
   }
 };
