@@ -246,3 +246,54 @@
 .refresh:hover{
   color:blue ;
 }
+
+
+/* Container styling */
+.time-div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Timer heading */
+.time-head{
+  font-size: 25x;
+  font-weight: bold;
+  color: #fff;
+  background: #283593;
+  padding: 12px 24px;
+  border-radius: 10px;
+  letter-spacing: 2px;
+  text-align: center;
+  margin-bottom: 20px;
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.2);
+  font-family: 'Orbitron', 'Courier New', monospace;
+}
+/* Resend OTP button */
+.time-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Hover effect */
+.time-btn:hover {
+  background: linear-gradient(135deg, #764ba2, #667eea);
+  transform: scale(1.05);
+}
+
+/* Active click effect */
+.time-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}

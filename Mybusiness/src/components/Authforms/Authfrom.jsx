@@ -1,6 +1,6 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Mail, X, Lock, RefreshCw} from "lucide-react";
+import { Mail, X, Lock, RefreshCw } from "lucide-react";
 import "./Auth.css";
 import OTPverification from "./OTPverification";
 import Passwordconfirme from "./Passwordconfirme";
@@ -31,6 +31,26 @@ export default function Authfrom({ onClose }) {
 
   const [emilstatus, setEmailstatus] = useState();
 
+  const [timeleft, setTimeleft] = useState(12);
+
+  useEffect(() => {
+    if (timeleft <= 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimeleft((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeleft]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
   const handleClose = () => {
     setIn(true);
     setForget(false);
@@ -48,11 +68,11 @@ export default function Authfrom({ onClose }) {
     setIn(false);
   };
 
-  const handlerefresh=(e)=>{
+  const handlerefresh = (e) => {
     setIn(true);
     setUp(false);
     setWarn(false);
-  }
+  };
 
   const handlesign = async () => {
     if (forget) {
@@ -74,11 +94,10 @@ export default function Authfrom({ onClose }) {
         setexits(Boolean(value));
         setWarn(Boolean(value));
 
-        if(exits){
+        if (exits) {
           setHead(false);
           setUp(false);
         }
-
       } catch (err) {
         console.log("Error in fetching Sign up data", err);
       }
@@ -144,8 +163,7 @@ export default function Authfrom({ onClose }) {
             type="email"
             placeholder="Email"
             value={signup.email}
-            onChange={(e) =>setSignup({ ...signup, email: e.target.value })
-            }
+            onChange={(e) => setSignup({ ...signup, email: e.target.value })}
             className="input-text"
           />
           <button className="sign-btn" onClick={handlesign}>
@@ -166,38 +184,48 @@ export default function Authfrom({ onClose }) {
             type="email"
             placeholder="Email"
             value={signup.email}
-            onChange={(e)=>setEmailforget({ ...emailforget, email: e.target.value })}
+            onChange={(e) =>
+              setEmailforget({ ...emailforget, email: e.target.value })
+            }
             className="input-text"
           />
-          <button className="sign-btn">
-            Send OTP
-          </button>
+          <button className="sign-btn">Send OTP</button>
         </>
       )}
 
       {/* warnning portion and OTP sent message */}
-      {warn? (
-       <> <div className="warnning2">
-          This email is already exits.
-          <br />
-          Please Sign In.
-        </div>
-        <div className="refresh" onClick={handlerefresh}><RefreshCw />Click here to signin</div>
+      {warn ? (
+        <>
+          {" "}
+          <div className="warnning2">
+            This email is already exits.
+            <br />
+            Please Sign In.
+          </div>
+          <div className="refresh" onClick={handlerefresh}>
+            <RefreshCw />
+            Click here to signin
+          </div>
         </>
       ) : (
-        (OTPstatus)? (
-          <div className="message">
-            OTP sent successfully to your email {signup.email}.<br></br>
-            <span style={{ color: "green" }}>Successfully...</span>
-          </div>
-        ):(
-          <div className="warnning">We are unable to send you OTP</div>
-        )
-      
-      )
-        }
-      {!exits && <OTPverification />}
+        OTPstatus && (
+          <>
+            <div className="message">
+              OTP sent successfully to your email {signup.email}.<br></br>
+              <span style={{ color: "green" }}>Successfully...</span>
+            </div>
 
+            <div  className="time-div">
+              <h2 className="time-head">OTP Timer: {formatTime(timeleft)}</h2>
+
+              {timeleft === 0 && (
+                <button className ="time-btn" onClick={() => setTimeleft(120)}>Resend OTP</button>
+              )}
+            </div>
+          </>
+        )
+      )}
+      {!exits && <OTPverification />}
     </div>
   );
 }
