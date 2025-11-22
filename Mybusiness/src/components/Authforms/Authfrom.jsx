@@ -4,7 +4,7 @@ import { Mail, X, Lock, RefreshCw } from "lucide-react";
 import "./Auth.css";
 import OTPverification from "./OTPverification";
 import Passwordconfirme from "./Passwordconfirme";
-export default function Authfrom({ onClose }) {
+export default function Authfrom({ onClose}) {
   const [signin, setSignin] = useState({ email: "", password: "" });
 
   const [signup, setSignup] = useState({ email: "" });
@@ -27,7 +27,7 @@ export default function Authfrom({ onClose }) {
 
   const [OTP, setOTP] = useState();
 
-  const [OTPstatus, setOTPstatus] = useState();
+  const [OTPstatus, setOTPstatus] = useState(false);
 
   const [emilstatus, setEmailstatus] = useState();
 
@@ -194,9 +194,8 @@ export default function Authfrom({ onClose }) {
       )}
 
       {/* warnning portion and OTP sent message */}
-      {warn ? (
+      {warn && (
         <>
-          {" "}
           <div className="warnning2">
             This email is already exits.
             <br />
@@ -207,9 +206,11 @@ export default function Authfrom({ onClose }) {
             Click here to signin
           </div>
         </>
-      ) : (
-        OTPstatus && (
-          <>
+      )}
+
+      {/* OTP sent message success message portion */}
+      {OTPstatus &&(
+        <>
             <div className="message">
               OTP sent successfully to your email {signup.email}.<br></br>
               <span style={{ color: "green" }}>Successfully...</span>
@@ -223,9 +224,9 @@ export default function Authfrom({ onClose }) {
               )}
             </div>
           </>
-        )
       )}
-      {!exits && <OTPverification />}
+
+      {!exits && <OTPverification OTP={OTP} />}
     </div>
   );
 }

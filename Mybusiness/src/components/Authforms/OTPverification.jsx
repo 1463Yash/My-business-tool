@@ -1,11 +1,15 @@
 import { useState,useRef } from "react"
-
+import Lottie from "lottie-react";
+import successAnim from "../../../animation/success.json";
+import invalidAnim from "../../../animation/invalid.json";
 import "./OTPverification.css";
+import "./Authfrom";
 
-export default function OTPverification() {
-const [otp, setOtp] = useState(new Array(6).fill(""));
+export default function OTPverification({OTP}) {
+  const [otp, setOtp] = useState(new Array(6).fill(""));
   const inputsRef = useRef([]);
-
+  const [verify,setVerify]=useState(null);
+  const [showinput,setShow]=useState(true);
   const handleChange = (e, index) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
     if (value) {
@@ -30,8 +34,21 @@ const [otp, setOtp] = useState(new Array(6).fill(""));
     }
   };
 
+  const handleverify=()=>{
+    setShow(false);
+    const enterotp=otp.join("");
+    if(enterotp===String(OTP)){
+      setVerify("valid");
+    }
+    else{
+      setVerify("invalid");
+    }
+    console.log("Entered otp ",otp.join(""));
+    console.log("Orginal OTP",OTP);
+  };
 
   return (<>
+    {showinput && <>
     <div className="otp-container">
       {otp.map((data, i) => (
         <input
@@ -39,6 +56,7 @@ const [otp, setOtp] = useState(new Array(6).fill(""));
           type="text"
           maxLength="1"
           value={data}
+          required
           onChange={(e) => handleChange(e, i)}
           onKeyDown={(e) => handleKeyDown(e, i)}
           ref={(el) => (inputsRef.current[i] = el)}
@@ -46,7 +64,43 @@ const [otp, setOtp] = useState(new Array(6).fill(""));
         />
       ))}
       </div>
-      <button   className="valideOTP-btn" >Verify OTP</button>
+      <button   className="valideOTP-btn" disabled={otp.join("").length !== 6} onClick={handleverify}>Verify OTP</button>
+    </>}
+
+    {verify=="valid"?<><div style={{ width: "150px", margin: "auto" }}>
+      <Lottie 
+        animationData={successAnim} 
+        loop={false}        
+        autoplay={true} 
+      />
+    </div></>:<></>}
+
+    {verify=="invalid"?
+    <><div style={{ width: "150px", margin: "auto" }}>
+      <Lottie 
+        animationData={invalidAnim} 
+        loop={false}        
+        autoplay={true} 
+      />
+    </div> </>:<></>
+      
+  }
+
+      {/* <div style={{ width: "150px", margin: "auto" }}>
+      <Lottie 
+        animationData={successAnim} 
+        loop={false}        
+        autoplay={true} 
+      />
+    </div>
+
+    <div style={{ width: "150px", margin: "auto" }}>
+      <Lottie 
+        animationData={invalidAnim} 
+        loop={false}        
+        autoplay={true} 
+      />
+    </div> */}
       </>
   )
 }

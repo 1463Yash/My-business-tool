@@ -4,6 +4,7 @@
     "bcrypt": "^6.0.0",
     "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2",
+    "lottie-react": "^2.4.1",
     "lucide-react": "^0.544.0",
     "nodemailer": "^7.0.9",
     "reactjs-popup": "^2.0.6"
